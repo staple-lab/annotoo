@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notate Demo</title>
+    <style>
+      body { font-family: ui-sans-serif, system-ui, sans-serif; margin: 0; color: #1a1a2e; }
+      header { background: #1a1a2e; color: #fff; padding: 40px 24px; }
+      header h1 { margin: 0 0 8px; }
+      main { max-width: 820px; margin: 0 auto; padding: 32px 24px 120px; }
+      section { margin-bottom: 40px; }
+      .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .card { border: 1px solid #e6e6ef; border-radius: 12px; padding: 16px; }
+      .card h3 { margin: 0 0 8px; }
+      button { background: #5b5bd6; color: #fff; border: 0; border-radius: 8px; padding: 10px 16px; font-size: 14px; cursor: pointer; }
+      button.secondary { background: #eee; color: #333; }
+      form { display: grid; gap: 12px; max-width: 360px; }
+      input, textarea { border: 1px solid #d7d7e0; border-radius: 8px; padding: 10px; font-size: 14px; }
+      ul { line-height: 1.8; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Acme Dashboard</h1>
+      <p>A sample page for trying out the Notate comment widget.</p>
+    </header>
+    <main>
+      <section>
+        <h2>Actions</h2>
+        <button id="primary-cta">Create shipment</button>
+        <button class="secondary">Cancel</button>
+      </section>
+
+      <section>
+        <h2>Cards</h2>
+        <div class="cards">
+          <div class="card"><h3>Revenue</h3><p>$42,300 this month</p></div>
+          <div class="card"><h3>Loads</h3><p>128 in transit</p></div>
+          <div class="card"><h3>On-time</h3><p>96.4%</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Recent items</h2>
+        <ul>
+          <li>Shipment #4821 — Sydney → Melbourne</li>
+          <li>Shipment #4822 — Brisbane → Cairns</li>
+          <li>Shipment #4823 — Perth → Adelaide</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Feedback form</h2>
+        <form>
+          <input type="text" placeholder="Name" />
+          <textarea placeholder="Message"></textarea>
+          <button type="button">Submit</button>
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
