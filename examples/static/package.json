@@ -1,0 +1,12 @@
+{
+  "name": "example-static",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "mkdir -p public && cp ../../packages/core/dist/annotoo.js public/annotoo.js && vite"
+  },
+  "devDependencies": {
+    "@staplelab/annotoo": "workspace:*",
+    "vite": "6.0.7"
+  }
+}

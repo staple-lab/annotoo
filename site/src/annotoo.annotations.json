@@ -1,0 +1,168 @@
+[
+  {
+    "id": "site_1",
+    "n": 1,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"hero-title\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Every note on this site is a live annotation. Use the toolbar in the bottom-right to hide them, list them or add your own.",
+    "category": "note",
+    "createdAt": 1791882060000,
+    "route": "/",
+    "title": "This page is annotated"
+  },
+  {
+    "id": "site_2",
+    "n": 2,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"demo-new\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Pick a provider, paste credentials, test the connection. In this prototype only the first step exists: worth saying before someone clicks it in a review.",
+    "category": "interaction",
+    "createdAt": 1791882120000,
+    "route": "/",
+    "title": "Opens Add agent"
+  },
+  {
+    "id": "site_3",
+    "n": 3,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"demo-status\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Active means a heartbeat in the last 5 minutes. Beta agents are visible to their team only.",
+    "category": "content",
+    "createdAt": 1791882180000,
+    "route": "/",
+    "title": "Status filter"
+  },
+  {
+    "id": "site_4",
+    "n": 4,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"demo-agents\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "GET /api/registry, newest first. Tags are the agent's connected tools; we show three and collapse the rest.",
+    "category": "development",
+    "createdAt": 1791882240000,
+    "route": "/",
+    "title": "Data"
+  },
+  {
+    "id": "site_5",
+    "n": 5,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"try-it\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Annotations you add here are saved in your browser only. \"Reset my annotations\" brings back the originals.",
+    "category": "interaction",
+    "createdAt": 1791882300000,
+    "route": "/"
+  },
+  {
+    "id": "site_6",
+    "n": 6,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"install-react\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "These lines are the whole integration. In vite dev you get the authoring tools; the production build is read-only.",
+    "category": "development",
+    "createdAt": 1791882360000,
+    "route": "/install"
+  },
+  {
+    "id": "site_7",
+    "n": 7,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"features-display\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Open Settings in the toolbar and switch between Always, On hover and Numbers only to see the difference on this page.",
+    "category": "content",
+    "createdAt": 1791882420000,
+    "route": "/features",
+    "title": "Try each mode"
+  },
+  {
+    "id": "site_8",
+    "n": 8,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"sharing-steps\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "No server is involved at any step. The annotations are part of your bundle, like your images and copy.",
+    "category": "note",
+    "createdAt": 1791882480000,
+    "route": "/sharing"
+  },
+  {
+    "id": "site_9",
+    "n": 9,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"schema-code\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "This is exactly what lands in your annotations file. Open this site's own file on GitHub to see a real one.",
+    "category": "development",
+    "createdAt": 1791882540000,
+    "route": "/schema"
+  },
+  {
+    "id": "a_mv8o2zk0_6jzw3y",
+    "n": 10,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"demo-agents\"] > div:nth-of-type(2)",
+      "textSnippet": "STSupport triage Tags new tickets and dr",
+      "offset": {
+        "x": 0.29914529914529914,
+        "y": 0.8936737804878049
+      }
+    },
+    "title": "test",
+    "body": "tetete",
+    "category": "note",
+    "createdAt": 1792016042112,
+    "route": "/"
+  }
+]
