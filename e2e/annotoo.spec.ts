@@ -57,8 +57,13 @@ test.describe('dev server: author mode', () => {
     await page.waitForTimeout(500);
     expect(await page.evaluate(() => (window as unknown as { __marker?: number }).__marker)).toBe(1);
 
-    // Edit in place by clicking the note.
+    // Outside Annotate, notes are locked: a click only selects.
     await tool(page, 'Stop annotating').click();
+    await ui(page).locator('.note', { hasText: 'Page title' }).click();
+    await expect(ui(page).locator('.editor')).toHaveCount(0);
+
+    // Edit in place by clicking the note while annotating.
+    await tool(page, 'Annotate an element').click();
     await ui(page).locator('.note', { hasText: 'Page title' }).click();
     await ui(page).locator('.editor textarea').fill('Always "Analytics".');
     await ui(page).locator('.editor .btn.primary').click();

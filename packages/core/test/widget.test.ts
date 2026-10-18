@@ -298,6 +298,8 @@ describe('author mode', () => {
     const [saved] = save.mock.calls[0];
     expect(saved[0]).toMatchObject({ title: 'Create button', body: 'Opens the booking flow.', category: 'interaction', n: 1, route: '/' });
     expect(saved[0].anchor.selector).toBe('#cta');
+    // The new note stays open (selected) rather than collapsing to its badge.
+    expect(q(`.note[data-id="${saved[0].id}"]`)!.classList.contains('is-active')).toBe(true);
     expect('author' in saved[0]).toBe(false);
     expect(onChange).toHaveBeenCalledOnce();
     expect(markers()).toHaveLength(1);
@@ -329,10 +331,19 @@ describe('author mode', () => {
     expect(q('.editor input.name')).toBeNull();
   });
 
-  test('clicking a note edits it in place; delete offers undo', async () => {
+  test('notes are locked until Annotate is on', async () => {
+    inst = mount({ storage: memoryStorage([annotation('a', 1, '#title')]) });
+    await inst.ready;
+    q<HTMLElement>('.note[data-id="a"]')!.click();
+    expect(q('.editor')).toBeNull();
+    expect(q('.note[data-id="a"]')!.classList.contains('is-active')).toBe(true);
+  });
+
+  test('clicking a note while annotating edits it in place; delete offers undo', async () => {
     const storage = memoryStorage([annotation('a', 1, '#title')]);
     inst = mount({ storage });
     await inst.ready;
+    await openToolbar();
     q<HTMLElement>('.note[data-id="a"]')!.click();
     expect(q('.editor')).not.toBeNull();
     expect(q('.note[data-id="a"]')!.classList.contains('is-off')).toBe(true);
@@ -361,6 +372,7 @@ describe('author mode', () => {
     await inst.ready;
     const pageKeys = vi.fn();
     window.addEventListener('keydown', pageKeys);
+    await openToolbar();
     q<HTMLButtonElement>('.marker')!.click();
     q('.editor textarea')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', bubbles: true, composed: true }));
     expect(pageKeys).not.toHaveBeenCalled();

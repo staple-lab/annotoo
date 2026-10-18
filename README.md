@@ -94,7 +94,7 @@ you can't edit.
 
 | Button | |
 | --- | --- |
-| Annotate *(author)* | On as soon as you open the toolbar. Pick an element to annotate; the page doesn't react to clicks while this is on. <kbd>Esc</kbd> or the button turns it off. |
+| Annotate *(author)* | On as soon as you open the toolbar. Pick an element to annotate, or click a note to edit it; the page doesn't react to clicks while this is on. With it off, notes are locked and a click only selects them. <kbd>Esc</kbd> or the button turns it off. |
 | Show / hide | Hide every annotation, leaving only the cockatoo tab. |
 | List | All annotations on this page, plus ones on other pages and any whose element has gone missing. |
 | Settings | Note display (always / on hover / numbers only), outlines, theme, toolbar position, and (author only) delete all. |

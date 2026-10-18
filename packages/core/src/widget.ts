@@ -167,7 +167,8 @@ export function createWidget(opts: WidgetOptions): Widget {
 
   // ---- surfaces ------------------------------------------------------------------
   const layer = createAnnotationLayer(ui.layer, ui.host, {
-    onSelect: (a) => (author ? openEditor(a) : setActive(activeId === a.id ? null : a.id)),
+    // Notes are locked outside Annotate: clicking one just selects it, as for viewers.
+    onSelect: (a) => (author && annotating ? openEditor(a) : setActive(activeId === a.id ? null : a.id)),
     onUnanchoredChange: (ids) => {
       unanchored = ids;
       if (panelOpen) renderPanel();
@@ -637,6 +638,8 @@ export function createWidget(opts: WidgetOptions): Widget {
         };
         closeEditor();
         commit([...annotations, created]);
+        // Leave the new note open, even in hover / numbers-only display.
+        setActive(created.id);
       }
     };
     const onKeys = (e: KeyboardEvent) => {

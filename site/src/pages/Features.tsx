@@ -53,8 +53,9 @@ export function Features() {
         <dt>Annotate</dt>
         <dd>
           Authors only, and on as soon as you open the toolbar. Hover to see element names, click to
-          annotate. The page ignores clicks while this is on; click the button or press <kbd>Esc</kbd> to
-          use the prototype again.
+          annotate, or click a note to edit it. The page ignores clicks while this is on; click the button
+          or press <kbd>Esc</kbd> to use the prototype again. With it off, notes are locked: clicking one
+          only selects it.
         </dd>
         <dt>Show and hide</dt>
         <dd>Hides every annotation, leaving just the button.</dd>
