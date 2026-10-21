@@ -5,13 +5,10 @@ import { resolve } from 'node:path';
 
 const readPackage = (directory) => JSON.parse(readFileSync(`${directory}/package.json`, 'utf8'));
 const version = readPackage('packages/core').version;
-if (readPackage('packages/vite-plugin').version !== version) throw new Error('Package versions must match');
 const destination = resolve('release-dist');
 rmSync(destination, { recursive: true, force: true });
 mkdirSync(destination, { recursive: true });
-for (const directory of ['packages/core', 'packages/vite-plugin']) {
-  execFileSync('pnpm', ['pack', '--pack-destination', destination], { cwd: directory, stdio: 'inherit' });
-}
+execFileSync('pnpm', ['pack', '--pack-destination', destination], { cwd: 'packages/core', stdio: 'inherit' });
 cpSync('packages/core/dist/annotoo.js', `${destination}/annotoo.js`);
 // Commit immutable browser builds so later Pages deployments retain old script URLs.
 const browserArchive = `site/public/releases/v${version}/annotoo.js`;

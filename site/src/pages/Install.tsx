@@ -1,84 +1,52 @@
 import { CodeBlock } from '../components/CodeBlock';
 import { Link } from '../router';
 
-const setup = `if (import.meta.env.DEV) {
-  const { mount } = await import('@staplelab/annotoo');
-  const instance = mount({ mode: 'author' });
-  import.meta.hot?.dispose(() => instance.destroy());
-}`;
+const archive = 'https://github.com/staple-lab/annotoo/releases/download/v0.3.0/staplelab-annotoo-0.3.0.tgz';
+const config = (framework?: 'react' | 'vue') => `import { defineConfig } from 'vite';
+${framework ? `import ${framework} from '@vitejs/plugin-${framework}';\n` : ''}import annotoo from '@staplelab/annotoo/vite';
+
+export default defineConfig({
+  plugins: [${framework ? `${framework}(), ` : ''}annotoo()],
+});`;
 
 export function Install() {
   return (
     <article className="prose">
-      <h1>Install once. Use any framework.</h1>
-      <p className="lede">
-        One package, one call to <code>mount()</code> in your browser entry point.
-        The same setup works with plain JavaScript, React and Vue.
-      </p>
-      <p>Install the <a href="https://github.com/staple-lab/annotoo/releases/tag/v0.2.0">v0.2.0 release package</a>:</p>
-      <CodeBlock code={{ npm: 'npm install https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-annotoo-0.2.0.tgz', pnpm: 'pnpm add https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-annotoo-0.2.0.tgz', yarn: 'yarn add https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-annotoo-0.2.0.tgz' }} />
-      <h2>Development only</h2>
-      <p>Start your app, then call <code>mount()</code> once, outside components. Vite removes
-        this guarded dynamic import from production builds. The disposal callback removes the
-        previous instance on hot reload. Pick your framework:</p>
-      <CodeBlock id="install-framework" tabsLabel="Framework" code={{
-        'Plain JavaScript': `// src/main.js — start your app first\n${setup}`,
-        React: `// src/main.tsx\nimport { createRoot } from 'react-dom/client';\nimport App from './App';\n\ncreateRoot(document.getElementById('root')!).render(<App />);\n\n${setup}`,
-        Vue: `// src/main.ts\nimport { createApp } from 'vue';\nimport App from './App.vue';\n\ncreateApp(App).mount('#app');\n\n${setup}`,
-      }} />
-      <p>No wrapper or component is needed. Without the optional plugin, author mode saves to
-        this browser's localStorage. It does not share changes with other people.</p>
-      <p><code>process.dev</code> is not a standard flag. Use <code>import.meta.env.DEV</code> in Vite.
-        Use <code>process.env.NODE_ENV</code> only when your framework or bundler supports and
-        replaces it; browsers do not supply <code>process</code>. In server-rendered apps, put
-        this setup in the framework's browser entry point.</p>
-      <h2>Optional: Git-backed discussions</h2>
-      <CodeBlock code="npm install -D https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-vite-plugin-annotoo-0.2.0.tgz" />
-      <p>Add the plugin alongside your existing framework plugins:</p>
-      <CodeBlock label="vite.config.ts" code={`import { defineConfig } from 'vite';
-import annotoo from '@staplelab/vite-plugin-annotoo';
-
-export default defineConfig(({ command }) => ({
-  plugins: [
-    // Keep your existing framework plugins here.
-    ...(command === 'serve' ? [annotoo()] : []),
-  ],
-}));`} />
-      <p>The plugin saves separate thread files in <code>.annotoo.comments/</code> at the Git
-        repository root. It creates <code>src/annotoo.annotations.json</code> if missing and
-        preserves existing notes. Keep the comments directory in Git.</p>
-      <p>For development only, use both the guarded import and this plugin guard.
-        An unconditional plugin embeds thread data into production HTML even if the widget
-        is never mounted.</p>
-      <h2>Publish a read-only review copy</h2>
-      <p>To deliberately include a discussion snapshot in your deployed prototype, enable the
-        plugin for builds too:</p>
-      <CodeBlock label="vite.config.ts" code={`// Keep the same imports and existing framework plugins.
-export default defineConfig({
-  plugins: [annotoo()],
-});`} />
-      <p>Then replace the development-only block with this single call in the browser entry point:</p>
-      <CodeBlock label="Browser entry point" code={`import { mount } from '@staplelab/annotoo';
-import annotations from './annotoo.annotations.json';
-
-const instance = mount({ annotations });
-import.meta.hot?.dispose(() => instance.destroy());`} />
-      <p>With the plugin, development uses author mode and builds include a read-only thread
-        snapshot. Rebuild and deploy to publish later comments.</p>
+      <h1>One package. One config entry.</h1>
+      <p className="lede">Add Annotoo to Vite. It starts automatically in development and saves
+        discussions with your code.</p>
+      <p>Install the <a href="https://github.com/staple-lab/annotoo/releases/tag/v0.3.0">v0.3.0 release package</a>:</p>
+      <CodeBlock code={{ npm: `npm install ${archive}`, pnpm: `pnpm add ${archive}`, yarn: `yarn add ${archive}` }} />
+      <h2>Add to your Vite config</h2>
+      <CodeBlock id="install-framework" tabsLabel="Framework" label="vite.config.ts" code={{ JavaScript: config(), React: config('react'), Vue: config('vue') }} />
+      <p>Keep your existing plugins. Run your usual development command. No component,
+        browser initialization or empty annotation file is needed.</p>
+      <h2>Development only by default</h2>
+      <p><code>annotoo()</code> automatically mounts the widget in development and writes
+        threads to <code>.annotoo.comments/</code>. Production builds exclude the widget and
+        discussion data. No environment guards are needed.</p>
+      <h2>Publish a review copy</h2>
+      <p>Opt in to a read-only snapshot by changing the plugin options:</p>
+      <CodeBlock code={`annotoo({ build: 'viewer' })`} />
+      <p>The build includes the widget, authors, replies and thread history. Rebuild and deploy
+        to publish later changes. Hosted viewers need no backend or account.</p>
       <h2>Set your Git identity</h2>
       <CodeBlock code={`git config user.name "Your Name"
 git config user.email "you@example.com"`} />
-      <p>Both values are required for Git-backed writing. Your name appears on comments; the
-        email becomes a hashed author ID. Raw email is not included in thread files. This is
-        local attribution, not verified identity.</p>
+      <p>Both values are required for Git-backed writing. Your name appears on comments; your
+        email becomes a hashed ID. Raw email is not stored in threads. This is attribution,
+        not verified identity.</p>
       <p>Open the cockatoo tab, select an element, and save with <kbd>⌘ Enter</kbd> on Mac or
         <kbd>Ctrl Enter</kbd>. Open a thread to reply, assign, unassign, resolve or reopen.
-        See <Link to="/sharing">the collaboration walkthrough</Link> for sharing through Git.</p>
-      <h2>Any HTML page</h2>
-      <CodeBlock code={`<script src="https://staple-lab.github.io/annotoo/releases/v0.2.0/annotoo.js"></script>`} />
-      <p>The script boots itself and saves to browser storage. Use <strong>Export HTML</strong>
-        to share one self-contained, read-only copy. See the <Link to="/api">API</Link> for
-        manual initialization and custom storage.</p>
+        Commit <code>.annotoo.comments/</code> and share through your normal Git workflow.
+        See <Link to="/sharing">the collaboration walkthrough</Link>.</p>
+      <h2>Without Vite</h2>
+      <p>The browser API works with any framework. Call <code>mount()</code> once in a browser
+        entry point. Without a custom storage adapter, author mode saves only in this browser.
+        See the <Link to="/api">API</Link> for manual setup and development flags.</p>
+      <CodeBlock code={`<script src="https://staple-lab.github.io/annotoo/releases/v0.3.0/annotoo.js"></script>`} />
+      <p>On plain HTML pages, the script starts automatically. <strong>Export HTML</strong>
+        creates a self-contained, read-only copy.</p>
     </article>
   );
 }

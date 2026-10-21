@@ -5,27 +5,21 @@ Vite plugin for this workflow. There is no separate Annotoo backend or account.
 
 ## 1. Set up your prototype
 
-Follow the [framework examples](../README.md#one-package-any-framework). Add
-`annotoo()` to the Vite plugins and call `mount()` once from your browser bootstrap,
-outside components. For development only, use both the guarded dynamic import and this
-plugin guard (keeping your existing framework plugins):
+Follow the [framework examples](../README.md#one-package-any-framework). Install
+`@staplelab/annotoo` and add its included Vite integration:
 
 ```ts
-export default defineConfig(({ command }) => ({
-  plugins: [
-    // Keep your existing framework plugins here.
-    ...(command === 'serve' ? [annotoo()] : []),
-  ],
-}));
+import { defineConfig } from 'vite';
+import annotoo from '@staplelab/annotoo/vite';
+
+export default defineConfig({
+  plugins: [annotoo()], // keep your existing framework plugins too
+});
 ```
 
-The import guard removes the widget; the plugin guard prevents a thread snapshot being
-embedded in production HTML. Destroy the mounted instance in
-`import.meta.hot?.dispose(() => instance.destroy())` to clean up on hot reload.
-
-For a published viewer, deliberately use unconditional `plugins: [annotoo()]` alongside
-your framework plugins and pass the `src/annotoo.annotations.json` import to `mount()`.
-The plugin creates that file with `[]` if needed. Existing notes stay valid.
+The widget starts automatically in development and saves threads in `.annotoo.comments/`.
+Production builds exclude the widget and thread data by default. No browser `mount()`
+call or empty annotation file is needed. Existing legacy files stay supported.
 
 In your local clone, check the identity Git will use:
 
@@ -129,9 +123,9 @@ discard another person's reply. The Git history remains available for review.
 
 ## 5. Publish a review copy
 
-Build and deploy the prototype as usual. The Vite plugin embeds the current merged
-threads, including replies and resolution history, even when your bootstrap still
-imports the legacy annotation array.
+Set `annotoo({ build: 'viewer' })` in your Vite config, then build and deploy. The plugin
+embeds the current merged threads, including replies, assignments and resolution history.
+Without this opt-in, production builds contain no Annotoo widget or thread snapshot.
 
 The normal hosted viewer is read-only. It has no Git credentials or shared write
 endpoint, and visitors do not need an account to read the discussions. New commits

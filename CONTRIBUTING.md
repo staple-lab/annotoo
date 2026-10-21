@@ -22,8 +22,8 @@ Layout:
   `src/layer.ts` draws annotations (outline, badge, connector, note) and lays them out;
   `src/anchor.ts` re-finds elements; `src/router.ts` scopes annotations to pages; and
   `src/storage.ts` holds the adapters.
-- `packages/vite-plugin`: Git identity, per-thread disk storage, the dev-server endpoint,
-  and the merged discussion snapshot embedded during a production build.
+- `packages/core/src/vite`: the included Vite integration for Git identity, thread files,
+  automatic development mounting and opt-in hosted snapshots.
 - `examples/*`: demo apps, also used as e2e targets.
 - `.annotoo.comments/`: per-thread JSON envelopes at the Git root. Existing legacy JSON
   stays readable; changes and deletion records live in this directory.
@@ -49,8 +49,8 @@ Guidelines:
   files. Separate clones exchange commits through Git and may have normal merge
   conflicts. Do not add automatic commits, pushes, or claims of live synchronization
   across clones.
-- **Keep hosted discussions readable without credentials.** The build must contain its
-  current discussion snapshot. Production viewers cannot write back to Git. An explicit
+- **Keep hosted discussions readable without credentials.** A build with `build: 'viewer'` must contain its
+  current discussion snapshot; default builds must exclude the widget and thread data. Production viewers cannot write back to Git. An explicit
   browser-local author override does not modify the shared snapshot.
 - **Anchoring changes need tests** in `packages/core/test/anchor.test.ts`.
 - **Respect the host page.** Don't leak styles, keystrokes or clicks into the prototype
@@ -60,7 +60,7 @@ Guidelines:
 ## Releasing
 
 Add a changeset for user-facing changes. Run `pnpm changeset version` to update the
-framework-agnostic package and optional Vite plugin together. Open a pull request;
+single package. Open a pull request;
 `main` requires passing CI and resolved review conversations, including for admins.
 A second reviewer's approval is optional.
 
@@ -68,7 +68,7 @@ Run `pnpm release:pack` before opening the release PR and commit the generated
 `site/public/releases/<version>/annotoo.js` archive. Keep previous archives so existing
 script URLs continue to work. An existing version cannot be overwritten with a different build.
 
-After merging, tag the tested commit with the package version, such as `v0.2.0`, and
+After merging, tag the tested commit with the package version, such as `v0.3.0`, and
 push the tag. The Release workflow builds installable packages, includes licenses and
 checksums, and publishes a GitHub release. `pnpm release:pack` produces the same files
 locally in `release-dist/`. Update `docs/release-notes.md` and the versioned installation

@@ -21,10 +21,25 @@ export function Api() {
     <article className="prose">
       <h1>API</h1>
       <p className="lede">
-        Call <code>mount()</code> once from your browser bootstrap in any framework.
+        The included Vite integration handles setup automatically. Use the browser API for custom integrations.
       </p>
 
-      <h2>Options</h2>
+      <h2>Vite integration</h2>
+      <CodeBlock label="vite.config.ts" code={`import annotoo from '@staplelab/annotoo/vite';
+
+// Add to your existing plugins:
+annotoo({
+  // build: 'viewer',               // opt in; omitted by default
+  autoMount: true,                  // default; false for manual browser setup
+  file: 'src/annotoo.annotations.json', // optional legacy input
+  commentsDir: '.annotoo.comments',  // relative to Git root, else Vite root
+  endpoint: '/__annotoo/annotations',
+});`} />
+      <p>The widget mounts automatically in development. Default production builds contain
+        neither the widget nor thread data. Set <code>build: 'viewer'</code> to publish a
+        read-only snapshot. New projects need no legacy annotation file; thread files are
+        created on first write.</p>
+      <h2>Browser options</h2>
       <div className="table-wrap">
         <table className="table api">
           <thead>
@@ -42,13 +57,15 @@ export function Api() {
         </table>
       </div>
 
-      <h2>Initialize once</h2>
+      <h2>Manual browser initialization</h2>
+      <p>For non-Vite integrations, call <code>mount()</code> once in the browser entry point.
+        Author mode uses browser storage without a custom adapter. With the Vite integration,
+        set <code>autoMount: false</code> before adding a manual call.</p>
       <CodeBlock
         label="main.ts"
         code={`import { mount } from '@staplelab/annotoo';
-import annotations from './annotoo.annotations.json';
 
-const annotoo = mount({ annotations, display: 'hover' });
+const annotoo = mount({ mode: 'author', display: 'hover' });
 
 annotoo.hide();      // hide all annotations
 annotoo.show();
@@ -59,6 +76,15 @@ annotoo.destroy();   // remove Annotoo from the page`}
         mode it started in, or <code>null</code> if it was switched off with <code>?annotoo=off</code>.
       </p>
 
+      <h2>Manual development-only loading</h2>
+      <p>For a manual Vite setup, use <code>import.meta.env.DEV</code>. Other bundlers need
+        their own supported development flag. <code>process.dev</code> is not standard;
+        browsers do not provide <code>process.env.NODE_ENV</code> unless the bundler replaces it.</p>
+      <CodeBlock code={`if (import.meta.env.DEV) {
+  const { mount } = await import('@staplelab/annotoo');
+  const instance = mount({ mode: 'author' });
+  import.meta.hot?.dispose(() => instance.destroy());
+}`} />
       <h2>Custom storage</h2>
       <p>To save author changes somewhere other than your repo, pass an object with two methods:</p>
       <CodeBlock
@@ -81,15 +107,7 @@ annotoo.destroy();   // remove Annotoo from the page`}
         plugin. Browser storage does not synchronize separate contributors.
       </p>
 
-      <h2>Vite plugin</h2>
-      <CodeBlock
-        label="vite.config.ts"
-        code={`annotoo({
-  file: 'src/annotoo.annotations.json', // relative to the Vite root
-  commentsDir: '.annotoo.comments',    // relative to the Git root, else Vite root
-  endpoint: '/__annotoo/annotations',   // must match the widget's endpoint
-});`}
-      />
+      <h2>Git storage</h2>
       <p>
         During <code>vite dev</code>, the plugin merges the legacy array with per-thread files
         and saves changes in the comments directory. It reads <code>user.name</code> and{' '}
@@ -105,8 +123,8 @@ annotoo.destroy();   // remove Annotoo from the page`}
         rewritten.
       </p>
       <p>
-        During <code>vite build</code>, the plugin embeds the merged discussions automatically,
-        including replies and resolution history. Your existing annotation import keeps working.
+        With <code>build: 'viewer'</code>, the plugin embeds the merged discussions,
+        including replies and resolution history. Default builds exclude these discussions.
         Normal hosted viewers are read-only and need no Git credentials, backend or write
         endpoint. An explicit hosted author override only changes personal browser storage.
       </p>

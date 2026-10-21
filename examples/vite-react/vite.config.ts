@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import annotoo from '@staplelab/vite-plugin-annotoo';
+import annotoo from '@staplelab/annotoo/vite';
 
 export default defineConfig({
   // Relative base so the build works when hosted under any sub-path.
   base: './',
-  plugins: [react(), annotoo({ commentsDir: process.env.ANNOTOO_COMMENTS_DIR })],
+  // This public demo includes a read-only viewer. Ordinary apps use annotoo().
+  plugins: [react(), annotoo({ build: 'viewer', commentsDir: process.env.ANNOTOO_COMMENTS_DIR })],
 });

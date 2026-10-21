@@ -1,5 +1,12 @@
 # @staplelab/annotoo
 
+## 0.3.0
+
+- Include the Vite integration at `@staplelab/annotoo/vite`; remove the separate plugin package.
+- Mount automatically in development and exclude the widget and threads from production by default.
+- Add `build: 'viewer'` for published snapshots and `autoMount: false` for manual initialization.
+- Keep legacy annotation files compatible without requiring new projects to create one.
+
 ## 0.2.0
 
 ### Minor Changes

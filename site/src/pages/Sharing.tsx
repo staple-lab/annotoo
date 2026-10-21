@@ -68,8 +68,8 @@ git push`} />
           <code>.annotoo.comments/</code>, with authors, replies and resolution history.
         </li>
         <li>
-          <strong>You build.</strong> The plugin merges the legacy annotations and thread files,
-          then embeds a snapshot. Existing annotation imports keep working.
+          <strong>You opt in and build.</strong> Set <code>{"annotoo({ build: 'viewer' })"}</code>
+          to embed the current discussions. Default builds contain no widget or thread data.
         </li>
         <li>
           <strong>Someone opens the link.</strong> Annotoo finds no dev server, starts in viewer mode,
@@ -106,23 +106,10 @@ git push`} />
       </p>
 
       <h2>Keeping it out of production</h2>
-      <p>
-        In Vite, dynamically import Annotoo inside <code>import.meta.env.DEV</code> and call
-        <code>mount()</code> once from the browser entry point. The production build removes
-        that branch and the widget import. Also enable the Vite plugin only when
-        <code>command === 'serve'</code>; otherwise it still embeds thread data in production HTML.
-      </p>
-      <CodeBlock code={`if (import.meta.env.DEV) {
-  const { mount } = await import('@staplelab/annotoo');
-  const instance = mount({ mode: 'author' });
-  import.meta.hot?.dispose(() => instance.destroy());
-}`} />
-      <CodeBlock label="vite.config.ts" code={`export default defineConfig(({ command }) => ({
-  plugins: [
-    // Keep your existing framework plugins here.
-    ...(command === 'serve' ? [annotoo()] : []),
-  ],
-}));`} />
+      <p>Use the default <code>annotoo()</code> configuration from
+        <code>@staplelab/annotoo/vite</code>. It mounts in development and excludes the widget
+        and discussion data from production builds. No browser setup or environment guards
+        are needed.</p>
     </article>
   );
 }

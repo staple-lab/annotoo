@@ -58,7 +58,7 @@ export function localStorageStorage(key = 'annotoo:annotations:' + location.path
 
 export const DEFAULT_ENDPOINT = '/__annotoo/annotations';
 
-/** Shape returned by the dev-server endpoint (see @staplelab/vite-plugin-annotoo). */
+/** Shape returned by the dev-server endpoint (see @staplelab/annotoo/vite). */
 export type DevServerPayload = {
   annotoo: 1;
   file: string;

@@ -40,6 +40,8 @@ jobs:
             tar -tzf "$package" | grep -qx 'package/README.md'
             tar -tzf "$package" | grep -qx 'package/dist/index.js'
             tar -tzf "$package" | grep -qx 'package/dist/index.d.ts'
+            tar -tzf "$package" | grep -qx 'package/dist/vite.js'
+            tar -tzf "$package" | grep -qx 'package/dist/vite.d.ts'
           done
           (cd release-dist && sha256sum --check SHA256SUMS)
       - name: Publish GitHub release

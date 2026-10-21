@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
+import { isAbsolute, relative, resolve, sep } from 'node:path';
 
 export type Author = { id: string; name: string };
 type Reply = { id: string; body: string; author: Author; createdAt: number };
@@ -162,12 +162,6 @@ export function assertSafePath(root: string, path: string): void {
     catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
   }
 }
-export function ensureLegacy(root: string, file: string): void {
-  assertSafePath(root, file);
-  if (existsSync(file)) return;
-  mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, '[]\n', { flag: 'wx' });
-}
 
 export function projectDirectory(commentsDir: string, project: string): string {
   return resolve(commentsDir, createHash('sha256').update(project).digest('hex').slice(0, 16));
@@ -185,7 +179,7 @@ export function readSnapshot(root: string, file: string, commentsDir: string, pr
     try { return JSON.parse(raw); }
     catch { throw new Error(`[annotoo] Invalid JSON in ${label}. Fix or restore this file before saving comments.`); }
   };
-  const legacyRaw = readFileSync(file, 'utf8');
+  const legacyRaw = existsSync(file) ? readFileSync(file, 'utf8') : '[]\n';
   hash.update(`project:${project}\nlegacy:${legacyRaw}\n`);
   try { for (const thread of validateThreads(parse(legacyRaw, relative(root, file)), true)) merged.set(thread.id, thread); }
   catch (error) { throw new Error(`[annotoo] Cannot read ${relative(root, file)}: ${(error as Error).message}`); }

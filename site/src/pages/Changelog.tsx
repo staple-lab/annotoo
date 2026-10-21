@@ -3,6 +3,16 @@ export function Changelog() {
     <article className="prose">
       <h1>Changelog</h1>
       <section className="release">
+        <h2>0.3.0 <time dateTime="2026-10-21">21 October 2026</time></h2>
+        <p>One package and one config entry. <a href="https://github.com/staple-lab/annotoo/releases/tag/v0.3.0">Download the release</a>.</p>
+        <ul>
+          <li>Vite integration included at <code>@staplelab/annotoo/vite</code>; no separate plugin install.</li>
+          <li>Automatic development setup, with the widget and threads excluded from production by default.</li>
+          <li>Opt in to published snapshots with <code>build: 'viewer'</code>, or manual setup with <code>autoMount: false</code>.</li>
+          <li>Existing threads and legacy annotation files remain compatible; new projects need no empty JSON file.</li>
+        </ul>
+      </section>
+      <section className="release">
         <h2>0.2.0 <time dateTime="2026-10-21">21 October 2026</time></h2>
         <p>First packaged release. <a href="https://github.com/staple-lab/annotoo/releases/tag/v0.2.0">Download the release</a>.</p>
         <ul>

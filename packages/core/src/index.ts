@@ -133,6 +133,15 @@ export function mount(options: MountOptions = {}): AnnotooInstance {
     const initial = withCommittedThreads(pending ?? options.annotations ?? []);
     const initialPending = pending;
 
+    let viewerAnnotations = initial;
+    // A development preview reads the current Git snapshot once, without creating
+    // author storage, subscribing to updates, or enabling writes. Hosted viewers
+    // continue to use the embedded snapshot without making network requests.
+    if (requested === 'viewer' && devHint) {
+      const payload = await probeDevServer(endpoint);
+      if (payload) viewerAnnotations = payload.annotations;
+    }
+
     let mode: Mode = requested === 'auto' ? 'viewer' : requested;
     let storage: AnnotationStorage = memoryStorage(initial);
 
@@ -160,7 +169,7 @@ export function mount(options: MountOptions = {}): AnnotooInstance {
       }
     }
 
-    let annotations = mode === 'author' ? await storage.load() : initial;
+    let annotations = mode === 'author' ? await storage.load() : viewerAnnotations;
     if (!Array.isArray(annotations)) annotations = [];
     if (destroyed) return null;
     if (document.readyState === 'loading') {

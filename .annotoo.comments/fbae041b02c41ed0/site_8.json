@@ -12,7 +12,7 @@
         "y": 0.5
       }
     },
-    "body": "The Vite dev server writes your local comments to Git-tracked files. A production build embeds the discussions as a read-only snapshot, so hosted viewers need no backend.",
+    "body": "The Vite dev server writes your comments to Git-tracked files. Set build: 'viewer' to include a read-only discussion snapshot in a published prototype.",
     "category": "note",
     "createdAt": 1791882480000,
     "route": "/sharing",

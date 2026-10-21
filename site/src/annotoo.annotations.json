@@ -94,7 +94,7 @@
         "y": 0.5
       }
     },
-    "body": "These lines are the whole integration. In vite dev you get the authoring tools; the production build is read-only.",
+    "body": "One Vite config entry starts Annotoo in development and saves threads in Git. Production stays clear unless you opt in with build: 'viewer'.",
     "category": "development",
     "createdAt": 1791882360000,
     "route": "/install"
