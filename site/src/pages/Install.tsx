@@ -15,9 +15,8 @@ export function Install() {
         One package, one call to <code>mount()</code> in your browser entry point.
         The same setup works with plain JavaScript, React and Vue.
       </p>
-      <p>The latest collaboration features are on <code>main</code>. Until the next npm release,
-        clone the repository and run <code>pnpm install</code> and <code>pnpm dev</code> to try them.</p>
-      <CodeBlock code={{ npm: 'npm install @staplelab/annotoo', pnpm: 'pnpm add @staplelab/annotoo', yarn: 'yarn add @staplelab/annotoo' }} />
+      <p>Install the <a href="https://github.com/staple-lab/annotoo/releases/tag/v0.2.0">v0.2.0 release package</a>:</p>
+      <CodeBlock code={{ npm: 'npm install https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-annotoo-0.2.0.tgz', pnpm: 'pnpm add https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-annotoo-0.2.0.tgz', yarn: 'yarn add https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-annotoo-0.2.0.tgz' }} />
       <h2>Development only</h2>
       <p>Start your app, then call <code>mount()</code> once, outside components. Vite removes
         this guarded dynamic import from production builds. The disposal callback removes the
@@ -34,7 +33,7 @@ export function Install() {
         replaces it; browsers do not supply <code>process</code>. In server-rendered apps, put
         this setup in the framework's browser entry point.</p>
       <h2>Optional: Git-backed discussions</h2>
-      <CodeBlock code="npm install -D @staplelab/vite-plugin-annotoo" />
+      <CodeBlock code="npm install -D https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-vite-plugin-annotoo-0.2.0.tgz" />
       <p>Add the plugin alongside your existing framework plugins:</p>
       <CodeBlock label="vite.config.ts" code={`import { defineConfig } from 'vite';
 import annotoo from '@staplelab/vite-plugin-annotoo';
@@ -76,7 +75,7 @@ git config user.email "you@example.com"`} />
         <kbd>Ctrl Enter</kbd>. Open a thread to reply, assign, unassign, resolve or reopen.
         See <Link to="/sharing">the collaboration walkthrough</Link> for sharing through Git.</p>
       <h2>Any HTML page</h2>
-      <CodeBlock code={`<script src="https://unpkg.com/@staplelab/annotoo/dist/annotoo.js"></script>`} />
+      <CodeBlock code={`<script src="https://staple-lab.github.io/annotoo/releases/v0.2.0/annotoo.js"></script>`} />
       <p>The script boots itself and saves to browser storage. Use <strong>Export HTML</strong>
         to share one self-contained, read-only copy. See the <Link to="/api">API</Link> for
         manual initialization and custom storage.</p>

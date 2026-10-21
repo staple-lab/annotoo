@@ -1,18 +1,33 @@
 {
   "name": "@staplelab/vite-plugin-annotoo",
-  "version": "0.1.0",
-  "description": "Vite dev-server plugin for Annotoo: saves your prototype annotations straight into a JSON file in your repo.",
+  "version": "0.2.0",
+  "description": "Git-backed discussion threads for Annotoo in Vite development, with optional read-only build snapshots.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
     "./package.json": "./package.json"
   },
-  "files": ["dist"],
-  "keywords": ["vite-plugin", "notate", "annotations", "prototype"],
-  "repository": { "type": "git", "url": "git+https://github.com/staple-lab/annotoo.git", "directory": "packages/vite-plugin" },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "vite-plugin",
+    "annotoo",
+    "annotations",
+    "prototype",
+    "collaboration"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/staple-lab/annotoo.git",
+    "directory": "packages/vite-plugin"
+  },
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc -p tsconfig.json",

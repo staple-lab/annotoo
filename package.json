@@ -15,7 +15,8 @@
     "release": "pnpm build && changeset publish",
     "site": "pnpm build && pnpm --filter site dev",
     "site:build": "pnpm build && pnpm --filter site build",
-    "pages:build": "node scripts/build-pages.mjs"
+    "pages:build": "node scripts/build-pages.mjs",
+    "release:pack": "pnpm build && node scripts/pack-release.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "2.27.11",

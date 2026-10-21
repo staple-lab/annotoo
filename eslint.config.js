@@ -3,7 +3,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist', '**/node_modules', 'test-results', 'playwright-report', 'pages-dist', 'examples/static/public'] },
+  { ignores: ['**/dist', '**/node_modules', 'test-results', 'playwright-report', 'pages-dist', 'release-dist', 'site/public/releases', 'examples/static/public'] },
   {
     files: ['**/*.{ts,tsx,mjs,js}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],

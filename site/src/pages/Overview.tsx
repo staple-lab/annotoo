@@ -22,9 +22,9 @@ export function Overview() {
       <CodeBlock
         id="install-snippet"
         code={{
-          npm: 'npm install @staplelab/annotoo\nnpm install -D @staplelab/vite-plugin-annotoo',
-          pnpm: 'pnpm add @staplelab/annotoo\npnpm add -D @staplelab/vite-plugin-annotoo',
-          yarn: 'yarn add @staplelab/annotoo\nyarn add -D @staplelab/vite-plugin-annotoo',
+          npm: 'npm install https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-annotoo-0.2.0.tgz\nnpm install -D https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-vite-plugin-annotoo-0.2.0.tgz',
+          pnpm: 'pnpm add https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-annotoo-0.2.0.tgz\npnpm add -D https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-vite-plugin-annotoo-0.2.0.tgz',
+          yarn: 'yarn add https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-annotoo-0.2.0.tgz\nyarn add -D https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-vite-plugin-annotoo-0.2.0.tgz',
         }}
       />
 
