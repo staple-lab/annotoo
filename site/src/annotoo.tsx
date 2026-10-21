@@ -2,12 +2,18 @@ import { Annotoo, type Annotation, type AnnotationStorage } from '@staplelab/ann
 import seed from './annotoo.annotations.json';
 
 const KEY = 'annotoo-site:annotations';
-const annotations = seed as Annotation[];
+const snapshot = (window as {
+  __ANNOTOO_COMMENTS__?: { annotations: Annotation[]; deletedIds: string[] };
+}).__ANNOTOO_COMMENTS__;
+const committed = new Map((seed as Annotation[]).map((thread) => [thread.id, thread]));
+for (const thread of snapshot?.annotations ?? []) committed.set(thread.id, thread);
+for (const id of snapshot?.deletedIds ?? []) committed.delete(id);
+const annotations = [...committed.values()].sort((a, b) => a.n - b.n);
 
 /**
  * On the published site, visitors get the real authoring tools. Their changes stay in
  * their browser, starting from the annotations we wrote. In `vite dev` the plugin takes
- * over and edits land in annotoo.annotations.json.
+ * over and edits land in the Git repository's .annotoo.comments directory.
  */
 const visitorStorage: AnnotationStorage = {
   load() {

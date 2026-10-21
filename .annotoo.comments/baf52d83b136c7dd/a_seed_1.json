@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "project": "examples/vite-react",
+  "thread": {
+    "id": "a_seed_1",
+    "n": 1,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"stat-spend\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Token cost across every agent for the window, at list prices. Committed-use discounts aren't applied yet.",
+    "category": "accessibility",
+    "createdAt": 1792562400000,
+    "route": "/",
+    "title": "Total spend",
+    "author": {
+      "id": "demo:designer",
+      "name": "Demo designer"
+    },
+    "status": "open",
+    "replies": [
+      {
+        "id": "demo_reply_1",
+        "body": "Can we make the pricing assumption visible to reviewers?",
+        "author": {
+          "id": "demo:engineer",
+          "name": "Demo engineer"
+        },
+        "createdAt": 1792562460000
+      },
+      {
+        "id": "demo_reply_2",
+        "body": "Yes. This thread keeps that context beside the spend card, with the discussion versioned in Git.",
+        "author": {
+          "id": "demo:designer",
+          "name": "Demo designer"
+        },
+        "createdAt": 1792562520000
+      }
+    ]
+  }
+}

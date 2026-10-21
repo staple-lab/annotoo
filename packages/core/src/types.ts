@@ -22,6 +22,24 @@ export type Anchor = {
   offset: { x: number; y: number };
 };
 
+/** A Git display name and stable identifier derived from the configured Git email. */
+export type CommentAuthor = { id: string; name: string };
+
+export type AnnotationReply = {
+  id: string;
+  body: string;
+  author: CommentAuthor;
+  createdAt: number;
+};
+
+/** Append-only record of a thread being resolved or reopened. */
+export type ThreadEvent = {
+  id: string;
+  type: 'resolved' | 'reopened';
+  author: CommentAuthor;
+  createdAt: number;
+};
+
 export type Annotation = {
   id: string;
   /** Display number shown on the marker (1-based, in creation order). */
@@ -39,6 +57,15 @@ export type Annotation = {
    * without a route show on every page.
    */
   route?: string;
+  /** Older, unattributed annotations remain valid. */
+  author?: CommentAuthor;
+  updatedBy?: CommentAuthor;
+  replies?: AnnotationReply[];
+  /** Missing status means open, for compatibility with existing annotation files. */
+  status?: 'open' | 'resolved';
+  resolvedAt?: number;
+  resolvedBy?: CommentAuthor;
+  events?: ThreadEvent[];
 };
 
 export type Mode = 'author' | 'viewer';

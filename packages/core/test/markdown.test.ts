@@ -39,4 +39,17 @@ describe('annotationsToMarkdown', () => {
     expect(md.match(/^## .*/gm)).toEqual(['## /agents', '## Every page']);
     expect(md.match(/^### .*/gm)).toEqual(['### 1. Note', '### 3. Note', '### 2. Note']);
   });
+
+  test('includes attributed replies and resolution history', () => {
+    const author = { id: 'git:one', name: 'Designer' };
+    const reviewer = { id: 'git:two', name: 'Engineer' };
+    const md = annotationsToMarkdown([a(1, { author, status: 'resolved', resolvedBy: reviewer, resolvedAt: 3,
+      replies: [{ id: 'r1', body: 'Fixed the contrast.', author: reviewer, createdAt: 2 }],
+      events: [{ id: 'e1', type: 'resolved', author: reviewer, createdAt: 3 }] })], 'Review');
+    expect(md).toContain('By Designer');
+    expect(md).toContain('**Engineer**');
+    expect(md).toContain('Fixed the contrast.');
+    expect(md).toContain('Resolved by Engineer');
+    expect(md).toContain('**Resolved** by Engineer');
+  });
 });

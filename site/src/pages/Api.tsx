@@ -76,19 +76,40 @@ annotoo.destroy();   // remove Annotoo from the page`}
         <code>memoryStorage</code>, <code>localStorageStorage</code> and{' '}
         <code>devServerStorage</code> are exported too.
       </p>
+      <p>
+        Custom storage owns its own identity and sharing behavior. The Git configuration,
+        per-thread files and automatic build snapshot described here are provided by the Vite
+        plugin. Browser storage does not synchronize separate contributors.
+      </p>
 
       <h2>Vite plugin</h2>
       <CodeBlock
         label="vite.config.ts"
         code={`annotoo({
   file: 'src/annotoo.annotations.json', // relative to the Vite root
+  commentsDir: '.annotoo.comments',    // relative to the Git root, else Vite root
   endpoint: '/__annotoo/annotations',   // must match the component's endpoint
 });`}
       />
       <p>
-        The plugin only affects <code>vite dev</code>: it serves the endpoint the toolbar saves to
-        and adds a one-line hint to your page so Annotoo knows to start in author mode. Your
-        production build is untouched.
+        During <code>vite dev</code>, the plugin merges the legacy array with per-thread files
+        and saves changes in the comments directory. It reads <code>user.name</code> and{' '}
+        <code>user.email</code> from local Git configuration; both are required for Git-backed
+        writes. The display name and a hashed author ID are stored with contributions, without
+        publishing the raw email. This is attribution, not authentication.
+      </p>
+      <p>
+        The directory has a project subfolder based on the repo-relative Vite root, so separate
+        apps in a monorepo keep their discussions apart. Thread envelopes have{' '}
+        <code>schemaVersion: 1</code>, <code>project</code>, <code>thread</code> and an optional{' '}
+        <code>deleted: true</code> record. Existing annotation arrays are retained rather than
+        rewritten.
+      </p>
+      <p>
+        During <code>vite build</code>, the plugin embeds the merged discussions automatically,
+        including replies and resolution history. Your existing annotation import keeps working.
+        Normal hosted viewers are read-only and need no Git credentials, backend or write
+        endpoint. An explicit hosted author override only changes personal browser storage.
       </p>
 
       <h2>Script tag</h2>

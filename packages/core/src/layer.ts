@@ -15,6 +15,8 @@ export type DisplayMode = 'always' | 'hover' | 'markers';
 
 export type LayerCallbacks = {
   onSelect(a: Annotation): void;
+  /** Opens the discussion independently of element editing. */
+  onThread?(a: Annotation, trigger?: HTMLElement): void;
   /** Fired whenever the set of annotations whose element can't be found changes. */
   onUnanchoredChange(ids: Set<string>): void;
 };
@@ -296,17 +298,22 @@ export function createAnnotationLayer(
       // Issue-card layout: #n, then the title with its category glyph, the body, and a row of
       // meta (category, page). Notes without a title lead with their body instead.
       [
-        el('div', { class: 'note-n' }, [`#${a.n}`]),
+        el('div', { class: 'note-n' }, [`#${a.n} · ${a.author?.name || 'Unattributed'}`]),
         el('div', { class: 'note-title' }, [
           el('span', { class: 'note-glyph' }, [icon(CATEGORY_ICON[cat], 15)]),
           el('span', {}, [a.title || a.body]),
         ]),
         a.title ? el('div', { class: 'note-body' }, [a.body]) : null,
+        el('div', { class: 'note-date' }, [new Date(a.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })]),
         el('div', { class: 'note-meta' }, [
           el('span', {}, [icon('tag', 13), label]),
           // The page, unless it's the root (a bare "/" says nothing).
           a.route && a.route !== '/' ? el('span', {}, [icon('file', 13), a.route]) : null,
         ]),
+        cb.onThread ? el('button', {
+          class: 'open-thread', type: 'button', 'aria-label': `Open thread ${a.n}`,
+          onClick: (e: Event) => { e.stopPropagation(); cb.onThread?.(a, e.currentTarget as HTMLElement); },
+        }, [`Open thread${a.replies?.length ? ` · ${a.replies.length} ${a.replies.length === 1 ? 'reply' : 'replies'}` : ''}`]) : null,
       ],
     );
     const wire = document.createElementNS(SVG_NS, 'line');

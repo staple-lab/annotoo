@@ -8,7 +8,7 @@ const listeners = new Set<() => void>();
 function appPath(): string {
   const base = new URL(import.meta.env.BASE_URL, location.href).pathname.replace(/\/$/, '');
   const path = location.pathname.startsWith(base) ? location.pathname.slice(base.length) : location.pathname;
-  return path.replace(/\/index\.html$/, '') || '/';
+  return path.replace(/\/index\.html$/, '').replace(/\/$/, '') || '/';
 }
 
 function appBase(): string {
@@ -36,7 +36,7 @@ export function usePath(): string {
 
 export function Link({ to, children, className }: { to: string; children: ReactNode; className?: string }) {
   const onClick = (e: MouseEvent) => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
     navigate(to);
   };

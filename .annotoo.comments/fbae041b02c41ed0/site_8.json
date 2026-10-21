@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "project": "site",
+  "thread": {
+    "id": "site_8",
+    "n": 8,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"sharing-steps\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "The Vite dev server writes your local comments to Git-tracked files. A production build embeds the discussions as a read-only snapshot, so hosted viewers need no backend.",
+    "category": "note",
+    "createdAt": 1791882480000,
+    "route": "/sharing"
+  }
+}

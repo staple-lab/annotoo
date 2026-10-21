@@ -13,7 +13,7 @@ export function Features() {
     <article className="prose">
       <h1>Features</h1>
       <p className="lede">
-        Everything on this page is something you can try right now with the toolbar in the corner.
+        Notes, discussions and resolution history beside the real, clickable prototype.
       </p>
 
       <h2>Annotations</h2>
@@ -35,6 +35,33 @@ export function Features() {
           ))}
         </tbody>
       </table>
+
+      <h2>Threads with a history</h2>
+      <p>
+        Open a note with <strong>Open thread</strong> to read its replies and authors. In development,
+        add a reply, resolve a thread when it is addressed, or reopen it when there is more to do.
+        Resolving keeps the discussion and records who changed its status and when. Older notes
+        without an author remain valid and are labelled Unattributed.
+      </p>
+      <p>
+        The list filters <strong>Open</strong>, <strong>Resolved</strong> and <strong>All</strong> make
+        completed discussions easy to find. Open threads have pins on the page; resolved threads
+        stay available in the list. Hosted viewers can read the same replies and history.
+      </p>
+
+      <h2>Collaboration through Git</h2>
+      <p>
+        The Vite plugin saves one thread per file in <code>.annotoo.comments/</code> at your Git
+        repository root. Your Git name is shown on contributions, and a hash of your configured
+        email supplies the author ID. The raw email is not published. This is local attribution,
+        not verified identity.
+      </p>
+      <p>
+        Browsers using the same dev server refresh from its files. Separate clones exchange
+        comments through normal Git pull, commit and push, with ordinary conflicts if people edit
+        the same thread. Annotoo does not commit or push for you. A build embeds the current
+        discussion for a read-only hosted viewer, with no backend or Git credentials.
+      </p>
 
       <h2>The toolbar</h2>
       <p>
@@ -60,11 +87,11 @@ export function Features() {
         <dt>Show and hide</dt>
         <dd>Hides every annotation, leaving just the button.</dd>
         <dt>List</dt>
-        <dd>Every annotation on the page, plus ones on other pages and any whose element has disappeared.</dd>
+        <dd>Threads on this page, other pages and missing elements. Filter by Open, Resolved or All, then select a thread to read its discussion.</dd>
         <dt>Settings</dt>
         <dd>Display, outlines, theme and toolbar position. Each viewer's choices are remembered in their browser.</dd>
         <dt>Copy as Markdown</dt>
-        <dd>Authors only. Every annotation as Markdown, ready to paste into a ticket, a doc or a chat.</dd>
+        <dd>Authors only. Notes, authors, replies and resolution history as Markdown, ready to paste into a ticket, a doc or a chat.</dd>
       </dl>
 
       <h2>Display modes</h2>

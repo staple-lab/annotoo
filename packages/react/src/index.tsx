@@ -5,6 +5,9 @@ export type {
   Anchor,
   Annotation,
   AnnotationCategory,
+  AnnotationReply,
+  CommentAuthor,
+  ThreadEvent,
   AnnotationStorage,
   DisplayMode,
   Mode,
@@ -29,8 +32,8 @@ export type AnnotooProps = MountOptions & {
  * ```
  *
  * With `@staplelab/vite-plugin-annotoo` in your Vite config, `vite dev` gives you author
- * mode (annotations save into that JSON file) and every production build is read-only, so
- * whoever opens your deployed prototype sees the annotations.
+ * mode (threads save into the Git repository's `.annotoo.comments` directory) and every
+ * production build includes a read-only snapshot of the discussions.
  */
 export function Annotoo({ disabled = false, annotations, ...options }: AnnotooProps): null {
   const instance = useRef<AnnotooInstance | null>(null);
@@ -39,6 +42,7 @@ export function Annotoo({ disabled = false, annotations, ...options }: AnnotooPr
   latest.current = options;
   const annotationsRef = useRef(annotations);
   annotationsRef.current = annotations;
+  const appliedAnnotations = useRef(annotations);
 
   const { mode, endpoint, position, basePath, display, outlines, theme, shortcuts } = options;
 
@@ -53,6 +57,9 @@ export function Annotoo({ disabled = false, annotations, ...options }: AnnotooPr
   }, [disabled, mode, endpoint, position, basePath, display, outlines, theme, shortcuts]);
 
   useEffect(() => {
+    // mount() already applies the initial prop plus the plugin's committed snapshot.
+    if (appliedAnnotations.current === annotations) return;
+    appliedAnnotations.current = annotations;
     if (annotations) instance.current?.setAnnotations(annotations);
   }, [annotations]);
 

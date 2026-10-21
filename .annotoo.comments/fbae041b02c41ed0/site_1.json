@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "project": "site",
+  "thread": {
+    "id": "site_1",
+    "n": 1,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"hero-title\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Every note on this site is a live annotation. Use the toolbar in the bottom-right to hide them, list them or add your own.",
+    "category": "note",
+    "createdAt": 1791882060000,
+    "route": "/",
+    "title": "This page is annotated",
+    "author": {
+      "id": "demo:designer",
+      "name": "Demo designer"
+    },
+    "replies": [
+      {
+        "id": "site_demo_reply",
+        "body": "Open this thread to try replies and resolution. This documentation sandbox saves only in your browser; the local Vite integration saves shared discussions in Git.",
+        "author": {
+          "id": "demo:engineer",
+          "name": "Demo engineer"
+        },
+        "createdAt": 1792562400000
+      }
+    ]
+  }
+}

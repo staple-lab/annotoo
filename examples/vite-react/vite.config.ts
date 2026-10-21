@@ -5,5 +5,5 @@ import annotoo from '@staplelab/vite-plugin-annotoo';
 export default defineConfig({
   // Relative base so the build works when hosted under any sub-path.
   base: './',
-  plugins: [react(), annotoo()],
+  plugins: [react(), annotoo({ commentsDir: process.env.ANNOTOO_COMMENTS_DIR })],
 });

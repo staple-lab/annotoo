@@ -1,146 +1,110 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, relative, resolve } from 'node:path';
+import { mkdirSync, realpathSync } from 'node:fs';
+import { relative, sep } from 'node:path';
 import type { Connect, Plugin } from 'vite';
+import { assertSafePath, ensureLegacy, gitIdentity, gitRoot, prepareChanges, projectDirectory, readSnapshot, relativePath, RequestError, validateThreads, withWriteLock, writeChanges } from './storage';
 
 export type AnnotooPluginOptions = {
-  /** Annotations file, relative to the Vite root. Default `src/annotoo.annotations.json`. */
+  /** Legacy annotations file, relative to the Vite root. Default `src/annotoo.annotations.json`. Kept for existing imports. */
   file?: string;
+  /** Git-tracked thread directory, relative to the Git repository root (or Vite root outside Git). Default `.annotoo.comments`. */
+  commentsDir?: string;
   /** Endpoint the widget talks to. Must match the widget's `endpoint`. Default `/__annotoo/annotations`. */
   endpoint?: string;
 };
-
 const MAX_BODY = 5 * 1024 * 1024;
-
 function readBody(req: Connect.IncomingMessage): Promise<string> {
   return new Promise((ok, fail) => {
     let size = 0;
+    let oversized = false;
     const chunks: Buffer[] = [];
     req.on('data', (chunk: Buffer) => {
       size += chunk.length;
-      if (size > MAX_BODY) {
-        fail(new Error('payload too large'));
-        req.destroy();
-        return;
-      }
-      chunks.push(chunk);
+      if (size > MAX_BODY) { oversized = true; chunks.length = 0; return; }
+      if (!oversized) chunks.push(chunk);
     });
-    req.on('end', () => ok(Buffer.concat(chunks).toString('utf8')));
+    req.on('end', () => oversized ? fail(new RequestError(413, 'Comment payload exceeds 5 MiB')) : ok(Buffer.concat(chunks).toString('utf8')));
     req.on('error', fail);
   });
 }
+export function serialize(annotations: unknown[]): string { return JSON.stringify(annotations, null, 2) + '\n'; }
+function scriptJson(value: unknown): string { return JSON.stringify(value).replace(/</g, '\\u003c'); }
 
-function looksLikeAnnotations(value: unknown): value is unknown[] {
-  return (
-    Array.isArray(value) &&
-    value.every(
-      (c) =>
-        typeof c === 'object' &&
-        c !== null &&
-        typeof (c as { id?: unknown }).id === 'string' &&
-        typeof (c as { body?: unknown }).body === 'string' &&
-        typeof (c as { anchor?: unknown }).anchor === 'object',
-    )
-  );
-}
-
-export function serialize(annotations: unknown[]): string {
-  return JSON.stringify(annotations, null, 2) + '\n';
-}
-
-/**
- * Serves `GET`/`PUT` on the Annotoo endpoint during `vite dev`, reading and writing a JSON
- * file you commit. Import that file in your app and pass it to `<Annotoo annotations={…} />`:
- * the production build then carries your annotations wherever it's deployed.
- */
+/** Git-backed review threads during development, with a read-only snapshot embedded in production builds. */
 export default function annotoo(options: AnnotooPluginOptions = {}): Plugin {
   const endpoint = options.endpoint ?? '/__annotoo/annotations';
+  if (!endpoint.startsWith('/') || endpoint.startsWith('//') || /[?#\s<>]/.test(endpoint)) throw new Error('[annotoo] endpoint must be a same-origin URL path');
   let file = '';
   let root = '';
-  let lastWritten: string | null = null;
-
-  const ensureFile = () => {
-    if (existsSync(file)) return;
-    mkdirSync(dirname(file), { recursive: true });
-    writeFileSync(file, '[]\n');
+  let repository = '';
+  let commentsDir = '';
+  let project = '';
+  const payload = () => {
+    const snapshot = readSnapshot(repository, file, commentsDir, project);
+    return { annotoo: 1, file: relative(root, file), commentsDir: relative(repository, commentsDir), project, annotations: snapshot.annotations, revision: snapshot.revision, ...gitIdentity(root) };
   };
-
   return {
     name: 'annotoo',
-
     configResolved(config) {
-      root = config.root;
-      file = resolve(root, options.file ?? 'src/annotoo.annotations.json');
-      // Create it up front so `import annotations from './annotoo.annotations.json'` never fails.
-      ensureFile();
+      root = realpathSync(config.root);
+      repository = gitRoot(root);
+      project = relative(repository, root).split(sep).join('/') || '.';
+      file = relativePath(root, options.file ?? 'src/annotoo.annotations.json', 'file');
+      // Validate against the Git root too, so a nested Vite project cannot traverse a symlink.
+      assertSafePath(repository, file);
+      commentsDir = relativePath(repository, options.commentsDir ?? '.annotoo.comments', 'commentsDir');
+      ensureLegacy(repository, file);
+      mkdirSync(commentsDir, { recursive: true });
     },
-
     configureServer(server) {
+      server.watcher.add(commentsDir);
       server.middlewares.use(endpoint, async (req, res) => {
         const send = (status: number, body: unknown) => {
           res.statusCode = status;
           res.setHeader('content-type', 'application/json');
           res.setHeader('cache-control', 'no-store');
+          const revision = (body as { revision?: unknown })?.revision;
+          if (typeof revision === 'string') res.setHeader('etag', revision);
           res.end(JSON.stringify(body));
         };
         try {
-          if (req.method === 'GET') {
-            ensureFile();
-            const raw = readFileSync(file, 'utf8');
-            const parsed: unknown = raw.trim() ? JSON.parse(raw) : [];
-            send(200, { annotoo: 1, file: relative(root, file), annotations: Array.isArray(parsed) ? parsed : [] });
-            return;
-          }
+          if (new URL(req.url ?? '/', 'http://localhost').pathname !== '/') { send(404, { error: 'Unknown Annotoo endpoint' }); return; }
+          if (req.method === 'GET') { send(200, payload()); return; }
           if (req.method === 'PUT') {
-            let parsed: unknown;
-            try {
-              parsed = JSON.parse(await readBody(req));
-            } catch {
-              send(400, { error: 'invalid JSON' });
-              return;
-            }
-            if (!looksLikeAnnotations(parsed)) {
-              send(400, { error: 'expected an array of annotations' });
-              return;
-            }
-            const text = serialize(parsed);
-            lastWritten = text;
-            writeFileSync(file, text);
-            send(200, { ok: true, count: parsed.length });
+            const origin = req.headers.origin;
+            const expectedOrigin = `${server.config.server.https ? 'https' : 'http'}://${req.headers.host}`;
+            if ((origin && origin !== expectedOrigin) || req.headers['sec-fetch-site'] === 'cross-site') { send(403, { error: 'Comment writes must come from this development server origin' }); return; }
+            const identity = gitIdentity(root);
+            if (!identity.identity) { send(403, { error: identity.identityError }); return; }
+            if (!req.headers['if-match']) { send(428, { error: 'A comment revision is required. Refresh comments before saving.' }); return; }
+            let requested: unknown;
+            try { requested = JSON.parse(await readBody(req)); }
+            catch (error) { if (error instanceof RequestError) throw error; throw new RequestError(400, 'Invalid JSON'); }
+            const threads = validateThreads(requested);
+            const result = await withWriteLock(repository, projectDirectory(commentsDir, project), async () => {
+              const snapshot = readSnapshot(repository, file, commentsDir, project);
+              if (req.headers['if-match'] !== snapshot.revision) return { status: 409, body: { error: 'Comments changed since you loaded them. Refresh comments before retrying; your draft has not been saved.', revision: snapshot.revision } };
+              writeChanges(repository, projectDirectory(commentsDir, project), prepareChanges(snapshot, threads, identity.identity!, project));
+              return { status: 200, body: payload() };
+            });
+            send(result.status, result.body);
             return;
           }
           res.setHeader('allow', 'GET, PUT');
-          send(405, { error: 'method not allowed' });
-        } catch (err) {
-          send(500, { error: err instanceof Error ? err.message : String(err) });
-        }
+          send(405, { error: 'Method not allowed' });
+        } catch (error) { send(error instanceof RequestError ? error.status : 500, { error: error instanceof Error ? error.message : String(error) }); }
       });
     },
-
-    // Dev only: tell the widget a Annotoo endpoint exists, so production builds never
-    // probe for one (no stray 404s in viewers' consoles).
     transformIndexHtml: {
       order: 'pre',
       handler(_html, ctx) {
-        if (!ctx.server) return;
-        return [
-          {
-            tag: 'script',
-            children: `window.__ANNOTOO_DEV__=${JSON.stringify({ endpoint })};`,
-            injectTo: 'head-prepend',
-          },
-        ];
+        if (ctx.server) return [{ tag: 'script', children: `window.__ANNOTOO_DEV__=${scriptJson({ endpoint })};`, injectTo: 'head-prepend' }];
+        const { annotations, deletedIds } = readSnapshot(repository, file, commentsDir, project);
+        return [{ tag: 'script', children: `window.__ANNOTOO_COMMENTS__=${scriptJson({ annotations, deletedIds })};`, injectTo: 'head-prepend' }];
       },
     },
-
-    // The widget already has the annotations it just saved; don't let Vite hot-reload the app
-    // because of our own write. Hand edits to the file still trigger HMR as normal.
+    // Polling reads collaborator changes; skip reloads so in-progress replies survive file updates.
     handleHotUpdate(ctx) {
-      if (ctx.file !== file || lastWritten === null) return;
-      try {
-        if (readFileSync(file, 'utf8') === lastWritten) return [];
-      } catch {
-        /* fall through to default handling */
-      }
+      if (ctx.file === commentsDir || ctx.file.startsWith(commentsDir + sep)) return [];
     },
   };
 }

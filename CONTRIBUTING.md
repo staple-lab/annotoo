@@ -10,6 +10,11 @@ pnpm install
 pnpm dev            # example prototype at http://localhost:5173 (author mode)
 ```
 
+Git-backed comment writing needs `git config user.name` and `git config user.email` in
+your clone. Use your own identity; Annotoo shows the name and hashes the email for a
+stable author ID. It does not publish the raw email. Local Git identity is attribution,
+not authentication. See [the collaboration walkthrough](docs/collaboration.md).
+
 Layout:
 
 - `packages/core`: everything that renders. Vanilla TypeScript in a Shadow DOM, with no
@@ -18,8 +23,11 @@ Layout:
   `src/anchor.ts` re-finds elements; `src/router.ts` scopes annotations to pages; and
   `src/storage.ts` holds the adapters.
 - `packages/react`: a thin wrapper around `mount()`. Keep UI out of it.
-- `packages/vite-plugin`: the dev-server endpoint.
+- `packages/vite-plugin`: Git identity, per-thread disk storage, the dev-server endpoint,
+  and the merged discussion snapshot embedded during a production build.
 - `examples/*`: demo apps, also used as e2e targets.
+- `.annotoo.comments/`: per-thread JSON envelopes at the Git root. Existing legacy JSON
+  stays readable; changes and deletion records live in this directory.
 
 ## Before you open a PR
 
@@ -34,6 +42,17 @@ Guidelines:
   self-contained file.
 - **Never break existing `annotoo.annotations.json` files.** Treat the `Annotation` type as
   a public format: add optional fields, don't rename or remove them.
+- **Keep thread history intact.** Replies and resolve/reopen events carry their own IDs,
+  author and timestamp. Retain history when resolving, reopening, or merging changes.
+  Per-thread files use `schemaVersion: 1`; deleting a legacy note needs a retained
+  deletion record so it does not reappear.
+- **Keep collaboration claims precise.** Clients of one dev server refresh from its
+  files. Separate clones exchange commits through Git and may have normal merge
+  conflicts. Do not add automatic commits, pushes, or claims of live synchronization
+  across clones.
+- **Keep hosted discussions readable without credentials.** The build must contain its
+  current discussion snapshot. Production viewers cannot write back to Git. An explicit
+  browser-local author override does not modify the shared snapshot.
 - **Anchoring changes need tests** in `packages/core/test/anchor.test.ts`.
 - **Respect the host page.** Don't leak styles, keystrokes or clicks into the prototype
   (see the capture handlers in `widget.ts`), and don't add single-key shortcuts: they

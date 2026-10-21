@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "project": "site",
+  "thread": {
+    "id": "site_9",
+    "n": 9,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"schema-code\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Each thread file contains a versioned envelope with project and thread fields. The thread carries its page, anchor, author, replies and resolution history.",
+    "category": "development",
+    "createdAt": 1791882540000,
+    "route": "/schema"
+  }
+}

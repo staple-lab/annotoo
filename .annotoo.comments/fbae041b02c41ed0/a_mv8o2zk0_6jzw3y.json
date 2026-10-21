@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "project": "site",
+  "thread": {
+    "id": "a_mv8o2zk0_6jzw3y",
+    "n": 10,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"demo-agents\"] > div:nth-of-type(2)",
+      "textSnippet": "STSupport triage Tags new tickets and dr",
+      "offset": {
+        "x": 0.29914529914529914,
+        "y": 0.8936737804878049
+      }
+    },
+    "title": "test",
+    "body": "tetete",
+    "category": "note",
+    "createdAt": 1792016042112,
+    "route": "/",
+    "updatedBy": {
+      "id": "demo:designer",
+      "name": "Demo designer"
+    },
+    "updatedAt": 1792562400000
+  },
+  "deleted": true
+}

@@ -4,18 +4,19 @@ import { Link } from '../router';
 import { hasLocalChanges, resetAnnotations } from '../annotoo';
 
 const viewerHref = `${import.meta.env.BASE_URL}?annotoo=viewer`;
+const demoHref = `${import.meta.env.BASE_URL}demo/`;
 
 export function Overview() {
   const changed = hasLocalChanges();
   return (
     <article className="prose overview">
       <h1 className="hero-title" data-annotoo-id="hero-title">
-        Annotations for prototypes
+        Discuss the prototype, beside the UI
       </h1>
       <p className="lede">
         Point at any element in your prototype and explain it: what it does, where its data
-        comes from, what isn't built yet. The notes ship with your build, so everyone who opens
-        the link sees them beside the UI they describe.
+        comes from, what isn't built yet. Reply and resolve with your team through Git. The
+        discussion ships with your build, so everyone who opens the link can read it in context.
       </p>
 
       <CodeBlock
@@ -28,6 +29,7 @@ export function Overview() {
       />
 
       <Demo />
+      <p><a className="button" href={demoHref}>Open the full prototype demo</a></p>
 
       <h2>How it works</h2>
       <ol className="steps">
@@ -42,10 +44,15 @@ export function Overview() {
         </li>
         <li>
           <strong>Save with ⌘ Enter.</strong> In <code>vite dev</code> the note is written straight into{' '}
-          <code>annotoo.annotations.json</code> in your repo.
+          <code>.annotoo.comments/</code> in your Git repo, with your Git display name.
         </li>
         <li>
-          <strong>Deploy as usual.</strong> Your build carries the annotations, read-only, to wherever it's hosted.
+          <strong>Keep the discussion together.</strong> Open a thread to reply, resolve or reopen.
+          Commit, pull and push the thread files with your normal Git workflow.
+        </li>
+        <li>
+          <strong>Deploy as usual.</strong> Your build carries the notes, replies and resolution history
+          to a read-only hosted viewer. No backend or viewer account is needed.
         </li>
       </ol>
 
@@ -57,20 +64,22 @@ export function Overview() {
         following them through layout changes and routes, and versioned with the code.
       </p>
       <p>
-        It's built for handing a prototype to someone who wasn't in the room: a stakeholder
-        reviewing a flow, an engineer picking up a spike, a researcher running a session. They get
-        the prototype and the reasoning together.
+        It's built for a stakeholder reviewing a flow, an engineer picking up a spike, or a
+        researcher running a session. Local contributors can continue the discussion in their
+        clone; hosted viewers get the prototype and the reasoning together.
       </p>
 
       <section className="try" data-annotoo-id="try-it" aria-labelledby="try-title">
-        <h2 id="try-title">Try it on this page</h2>
+        <h2 id="try-title">Explore Annotoo</h2>
         <p>
-          The toolbar in the corner is the real thing. Annotate anything here: your notes are saved
-          in this browser only, and nobody else sees them.
+          This documentation page is a personal sandbox: notes you add here stay in your browser.
+          Nobody else sees them, and they never update Git. The full prototype demo is a read-only
+          review copy with the published discussions. Names such as Demo designer and Demo
+          engineer are illustrative identities in the sample threads.
         </p>
         <div className="try-actions">
           <a className="button" href={viewerHref}>
-            See it as a viewer
+            See this page as a viewer
           </a>
           {changed && (
             <button type="button" className="button ghost" onClick={resetAnnotations}>
@@ -79,6 +88,9 @@ export function Overview() {
           )}
           <Link to="/install" className="button ghost">
             Add it to your prototype
+          </Link>
+          <Link to="/sharing" className="button ghost">
+            Collaborate through Git
           </Link>
         </div>
       </section>

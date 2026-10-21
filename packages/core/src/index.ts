@@ -12,7 +12,7 @@ import { createWidget, type Position, type Settings, type Widget, type WidgetAct
 import type { DisplayMode } from './layer';
 import type { Theme } from './ui';
 
-export type { Anchor, Annotation, AnnotationCategory, Mode } from './types';
+export type { Anchor, Annotation, AnnotationCategory, AnnotationReply, CommentAuthor, ThreadEvent, Mode } from './types';
 export { CATEGORIES } from './types';
 export type { AnnotationStorage, DevServerPayload } from './storage';
 export type { WidgetAction, Position, Settings } from './widget';
@@ -103,6 +103,18 @@ function seededLocalStorage(initial: Annotation[]): AnnotationStorage {
   };
 }
 
+/** The Vite plugin includes committed threads in static builds, including legacy deletions. */
+function withCommittedThreads(initial: Annotation[]): Annotation[] {
+  const snapshot = (window as {
+    __ANNOTOO_COMMENTS__?: { annotations?: Annotation[]; deletedIds?: string[] };
+  }).__ANNOTOO_COMMENTS__;
+  if (!snapshot || !Array.isArray(snapshot.annotations)) return initial;
+  const threads = new Map(initial.map((annotation) => [annotation.id, annotation]));
+  for (const annotation of snapshot.annotations) threads.set(annotation.id, annotation);
+  for (const id of snapshot.deletedIds ?? []) threads.delete(id);
+  return [...threads.values()].sort((a, b) => a.n - b.n || a.id.localeCompare(b.id));
+}
+
 /** Put the Annotoo widget on the page. Safe to call before `document.body` exists. */
 export function mount(options: MountOptions = {}): AnnotooInstance {
   let widget: Widget | null = null;
@@ -118,7 +130,8 @@ export function mount(options: MountOptions = {}): AnnotooInstance {
     const endpoint = options.endpoint ?? devHint?.endpoint ?? DEFAULT_ENDPOINT;
     // In 'auto', only look for the dev endpoint when the dev plugin has announced itself.
     const probe = requested === 'author' || !!devHint;
-    const initial = options.annotations ?? [];
+    const initial = withCommittedThreads(pending ?? options.annotations ?? []);
+    const initialPending = pending;
 
     let mode: Mode = requested === 'auto' ? 'viewer' : requested;
     let storage: AnnotationStorage = memoryStorage(initial);
@@ -132,19 +145,29 @@ export function mount(options: MountOptions = {}): AnnotooInstance {
         if (payload) {
           mode = 'author';
           storage = devServerStorage({ endpoint, file: payload.file });
+        } else if (devHint) {
+          // A broken Git endpoint must never silently become browser-only storage.
+          mode = 'author';
+          storage = {
+            ...memoryStorage(initial),
+            identity: null,
+            identityError: 'Git comments could not be loaded. Check the dev server and .annotoo.comments files, then reload.',
+            describe: () => 'Git comments unavailable · changes are disabled',
+          };
         } else if (requested === 'author') {
           storage = seededLocalStorage(initial);
         }
       }
     }
 
-    let annotations = mode === 'author' ? await storage.load() : (pending ?? initial);
+    let annotations = mode === 'author' ? await storage.load() : initial;
     if (!Array.isArray(annotations)) annotations = [];
     if (destroyed) return null;
     if (document.readyState === 'loading') {
       await new Promise((r) => document.addEventListener('DOMContentLoaded', r, { once: true }));
       if (destroyed) return null;
     }
+    if (mode === 'viewer' && pending !== initialPending && pending) annotations = pending;
 
     const defaults: Settings = {
       display: options.display ?? 'always',
@@ -157,6 +180,7 @@ export function mount(options: MountOptions = {}): AnnotooInstance {
       storage,
       annotations,
       getRoute: createRouteResolver({ mode, route: options.route, basePath: options.basePath }),
+      basePath: options.basePath,
       defaults,
       actions: mode === 'author' ? options.actions ?? [] : [],
       shortcuts: options.shortcuts ?? true,

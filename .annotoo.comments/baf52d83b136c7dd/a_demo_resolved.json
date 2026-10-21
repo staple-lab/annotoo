@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "project": "examples/vite-react",
+  "thread": {
+    "id": "a_demo_resolved",
+    "n": 6,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"spend-chart\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "title": "Completed chart review",
+    "body": "The chart now includes a readable label for assistive technology. This is an example of a resolved review thread.",
+    "category": "accessibility",
+    "route": "/",
+    "createdAt": 1792562400000,
+    "author": {
+      "id": "demo:designer",
+      "name": "Demo designer"
+    },
+    "replies": [
+      {
+        "id": "demo_resolved_reply",
+        "body": "Verified the chart label. Ready to resolve.",
+        "author": {
+          "id": "demo:engineer",
+          "name": "Demo engineer"
+        },
+        "createdAt": 1792562580000
+      }
+    ],
+    "status": "resolved",
+    "resolvedAt": 1792562640000,
+    "resolvedBy": {
+      "id": "demo:designer",
+      "name": "Demo designer"
+    },
+    "events": [
+      {
+        "id": "demo_resolved_event",
+        "type": "resolved",
+        "author": {
+          "id": "demo:designer",
+          "name": "Demo designer"
+        },
+        "createdAt": 1792562640000
+      }
+    ]
+  }
+}

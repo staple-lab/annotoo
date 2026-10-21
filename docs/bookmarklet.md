@@ -26,6 +26,10 @@ javascript:(function(){if(window.__annotooBooted){return;}var s=document.createE
 2. Click the bookmark. The Annotoo button appears bottom-right.
 3. Annotate, then use **Export HTML** in the toolbar.
 
+The bookmarklet keeps changes in your browser. It does not write Git-backed comment
+files or synchronize contributors. For discussion threads shared through Git, use the
+[Vite plugin workflow](collaboration.md). Exported HTML is a read-only snapshot.
+
 The loader is idempotent: clicking it twice on the same page does nothing the second time
 (`__annotooBooted` guard). The injected `<script data-annotoo>` tag is stripped from exported
 bundles automatically.

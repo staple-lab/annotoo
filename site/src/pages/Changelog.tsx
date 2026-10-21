@@ -3,6 +3,18 @@ export function Changelog() {
     <article className="prose">
       <h1>Changelog</h1>
       <section className="release">
+        <h2>Unreleased</h2>
+        <p>Discuss prototypes through your existing Git workflow.</p>
+        <ul>
+          <li>Attributed replies, resolve/reopen history and Open, Resolved and All list filters.</li>
+          <li>One versioned thread file per discussion in .annotoo.comments, separated by project in a monorepo.</li>
+          <li>Git display names and hashed author IDs, with no raw email published.</li>
+          <li>Development clients refresh from disk; separate clones exchange comments with Git pull, commit and push.</li>
+          <li>Existing annotation arrays stay supported, and builds embed discussions for read-only hosted viewers.</li>
+          <li>Markdown export includes authors, replies and resolution history.</li>
+        </ul>
+      </section>
+      <section className="release">
         <h2>
           0.1.0 <time dateTime="2026-10-13">13 October 2026</time>
         </h2>

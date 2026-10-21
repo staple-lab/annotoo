@@ -17,7 +17,10 @@ const flush = () => act(async () => { await new Promise((r) => setTimeout(r, 0))
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn(async () => new Response('<!doctype html>', { status: 200 })));
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  delete (window as { __ANNOTOO_COMMENTS__?: unknown }).__ANNOTOO_COMMENTS__;
+});
 
 test('mounts once under StrictMode and cleans up on unmount', async () => {
   const { unmount } = render(
@@ -46,4 +49,24 @@ test('disabled renders nothing', async () => {
   render(<Annotoo disabled annotations={[annotation('a', '#t')]} />);
   await flush();
   expect(document.getElementById('annotoo-root')).toBeNull();
+});
+
+test('mounts committed threads and legacy deletions, then honors explicit viewer prop updates', async () => {
+  const legacy = annotation('a', '#t');
+  const removed = annotation('removed', '#p');
+  (window as { __ANNOTOO_COMMENTS__?: unknown }).__ANNOTOO_COMMENTS__ = {
+    annotations: [{ ...legacy, body: 'Committed discussion' }],
+    deletedIds: ['removed'],
+  };
+  const { rerender } = render(<><h1 id="t">T</h1><p id="p">P</p><Annotoo annotations={[legacy, removed]} /></>);
+  await flush();
+  expect(markers()).toBe(1);
+  expect(document.getElementById('annotoo-root')?.shadowRoot?.textContent).toContain('Committed discussion');
+  rerender(<><h1 id="t">T</h1><p id="p">P</p><Annotoo annotations={[]} /></>);
+  await flush();
+  expect(markers()).toBe(0);
+  rerender(<><h1 id="t">T</h1><p id="p">P</p><Annotoo annotations={[{ ...legacy, body: 'Updated runtime discussion' }]} /></>);
+  await flush();
+  expect(markers()).toBe(1);
+  expect(document.getElementById('annotoo-root')?.shadowRoot?.textContent).toContain('Updated runtime discussion');
 });
