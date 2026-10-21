@@ -247,6 +247,46 @@ describe('auto mode', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  test('development viewer override reads the Git snapshot once without author controls, writes, or polling', async () => {
+    (window as { __ANNOTOO_DEV__?: unknown }).__ANNOTOO_DEV__ = { endpoint: '/__x' };
+    history.replaceState(null, '', '/?annotoo=viewer');
+    const remote = annotation('remote', 1, '#title', { body: 'Saved Git discussion' });
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ annotoo: 1, file: 'src/a.json', annotations: [remote] })));
+    const customStorage = { load: vi.fn(), save: vi.fn(), subscribe: vi.fn() };
+    inst = mount({ storage: customStorage });
+    expect(await inst.ready).toBe('viewer');
+    expect(q('.note')!.textContent).toContain('Saved Git discussion');
+    await openToolbar();
+    expect(button('Annotate an element')).toBeNull();
+    button('Open thread 1')!.click();
+    expect(q('.thread textarea')).toBeNull();
+    expect(button('Assign to me')).toBeNull();
+    expect(customStorage.load).not.toHaveBeenCalled();
+    expect(customStorage.save).not.toHaveBeenCalled();
+    expect(customStorage.subscribe).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch).toHaveBeenCalledWith('/__x', expect.objectContaining({ headers: { accept: 'application/json' } }));
+    expect(vi.mocked(fetch).mock.calls.every(([, init]) => !init?.method || init.method === 'GET')).toBe(true);
+    vi.useFakeTimers();
+    try {
+      await vi.advanceTimersByTimeAsync(6000);
+      expect(fetch).toHaveBeenCalledOnce();
+    } finally { vi.useRealTimers(); }
+  });
+
+  test('viewer updates made during the development snapshot request take precedence', async () => {
+    (window as { __ANNOTOO_DEV__?: unknown }).__ANNOTOO_DEV__ = { endpoint: '/hint' };
+    let finish!: (response: Response) => void;
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(resolve => { finish = resolve; })));
+    inst = mount({ mode: 'viewer', endpoint: '/override', annotations: [] });
+    inst.setAnnotations([annotation('manual', 1, '#title', { body: 'Latest manual snapshot' })]);
+    finish(Response.json({ annotoo: 1, file: 'src/a.json', annotations: [annotation('remote', 1, '#title')] }));
+    expect(await inst.ready).toBe('viewer');
+    expect(fetch).toHaveBeenCalledWith('/override', expect.anything());
+    expect(q('.note')!.textContent).toContain('Latest manual snapshot');
+    expect(q('.note[data-id="remote"]')).toBeNull();
+  });
+
   test('becomes author mode when the dev plugin is announced and answers', async () => {
     (window as { __ANNOTOO_DEV__?: unknown }).__ANNOTOO_DEV__ = { endpoint: '/__x' };
     vi.stubGlobal('fetch', vi.fn(async () => Response.json({ annotoo: 1, file: 'src/a.json', annotations: [annotation('a', 1, '#title')] })));

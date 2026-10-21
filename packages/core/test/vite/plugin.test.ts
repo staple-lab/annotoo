@@ -1,13 +1,13 @@
+// @vitest-environment node
 import { execFileSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, realpathSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { build, createServer, transformWithEsbuild, type ViteDevServer } from 'vite';
-import annotoo from '../src/index';
-import { projectDirectory, type Thread } from '../src/storage';
+import annotoo from '../../src/vite/index';
+import { projectDirectory, type Thread } from '../../src/vite/storage';
 
 type Payload = { annotoo: 1; file: string; commentsDir: string; project: string; annotations: Thread[]; collaborators: { id: string; name: string }[]; revision: string; identity: { id: string; name: string } | null; identityError?: string; error?: string };
 type JsonResponse = Omit<Awaited<ReturnType<typeof fetch>>, 'json'> & { json(): Promise<Payload> };
@@ -28,6 +28,9 @@ beforeEach(async () => {
   dir = realpathSync(mkdtempSync(join(tmpdir(), 'annotoo-plugin-')));
   file = join(dir, 'src/annotoo.annotations.json');
   comments = join(dir, '.annotoo.comments');
+  mkdirSync(join(dir, 'src'), { recursive: true });
+  writeFileSync(file, '[]\n');
+  mkdirSync(comments);
   git('init', '-q');
   git('config', 'user.name', 'Ada Lovelace');
   git('config', 'user.email', 'ADA@Example.com');
@@ -40,15 +43,28 @@ beforeEach(async () => {
 afterEach(async () => { await server?.close(); rmSync(dir, { recursive: true, force: true }); });
 
 describe('Git-backed collaborative comments', () => {
-  test('creates an import-compatible legacy file and returns privacy-preserving Git identity', async () => {
-    expect(readFileSync(file, 'utf8')).toBe('[]\n');
-    expect(existsSync(comments)).toBe(true);
+  test('loads without creating legacy files or comment directories and returns privacy-preserving identity', async () => {
+    rmSync(file);
+    rmSync(comments, { recursive: true });
     const res = await fetchJson(`${base}/__annotoo/annotations`);
     const payload: Payload = await res.json();
     expect(payload).toMatchObject({ annotoo: 1, file: join('src', 'annotoo.annotations.json'), commentsDir: '.annotoo.comments', project: '.', annotations: [], identity: { name: 'Ada Lovelace', id: `git:${createHash('sha256').update('ada@example.com').digest('hex')}` } });
+    expect(existsSync(file)).toBe(false);
+    expect(existsSync(comments)).toBe(false);
     expect(res.headers.get('etag')).toBe(payload.revision);
     expect(JSON.stringify(payload)).not.toContain('ADA@Example.com');
     expect(JSON.stringify(payload)).not.toContain('ada@example.com');
+  });
+
+  test('first save creates only Git thread records without an empty legacy JSON file', async () => {
+    rmSync(file);
+    rmSync(comments, { recursive: true });
+    const initial = await get();
+    const response = await put([annotation()], initial.revision);
+    expect(response.status).toBe(200);
+    expect(existsSync(file)).toBe(false);
+    expect(record('a1').thread.body).toBe('hi');
+    expect((await get()).annotations).toHaveLength(1);
   });
 
   test('discovers deduplicated Git authors and stored collaborators without exposing emails', async () => {
@@ -207,7 +223,7 @@ describe('Git-backed collaborative comments', () => {
 
   test('coordinates CAS writes from separate operating-system processes and recovers dead locks', async () => {
     const revision = (await get()).revision;
-    const module = await transformWithEsbuild(readFileSync(new URL('../src/storage.ts', import.meta.url), 'utf8'), 'storage.ts', { loader: 'ts', target: 'node18' });
+    const module = await transformWithEsbuild(readFileSync(new URL('../../src/vite/storage.ts', import.meta.url), 'utf8'), 'storage.ts', { loader: 'ts', target: 'node18' });
     const compiled = join(dir, 'storage.mjs');
     writeFileSync(compiled, module.code);
     const project = projectDirectory(comments, '.');
@@ -275,7 +291,7 @@ describe('Git-backed collaborative comments', () => {
     expect((await get()).annotations.map((thread) => thread.id)).toEqual(['keep']);
     expect(readFileSync(file, 'utf8')).toBe(original);
     expect((await put(legacy, start.revision)).status).toBe(409);
-    const result = await build({ root: dir, configFile: false, logLevel: 'silent', plugins: [annotoo()], build: { write: false } });
+    const result = await build({ root: dir, configFile: false, logLevel: 'silent', plugins: [annotoo({ build: 'viewer', autoMount: false })], build: { write: false } });
     const output = (Array.isArray(result) ? result[0] : result) as { output: { type: string; fileName: string; source?: string | Uint8Array }[] };
     const html = String(output.output.find((entry) => entry.fileName === 'index.html')?.source);
     expect(html).toContain('window.__ANNOTOO_COMMENTS__=');
@@ -284,59 +300,68 @@ describe('Git-backed collaborative comments', () => {
     expect(html).not.toContain('__ANNOTOO_DEV__');
   });
 
-  test('documented dev-only recipe excludes comments and SDK from production while retaining development review', async () => {
+  test('default plugin leaves production untouched, even with corrupt or missing comment files', async () => {
     const sentinel = 'PRIVATE_REVIEW_SENTINEL_5a8d';
-    await put([{ ...annotation(), body: sentinel }], (await get()).revision);
-    const pluginPath = fileURLToPath(new URL('../src/index.ts', import.meta.url));
-    // Resolve the real SDK source, so this test also runs on a fresh checkout before a package build.
-    const sdkPath = fileURLToPath(new URL('../../core/src/index.ts', import.meta.url));
-    const configFile = join(dir, 'vite.config.mts');
-    writeFileSync(configFile, `
-      import annotoo from ${JSON.stringify(pluginPath)};
-      export default ({ command }) => ({
-        plugins: command === 'serve' ? [annotoo()] : [],
-      });
-    `);
-    writeFileSync(join(dir, 'index.html'), '<!doctype html><title>App</title><script type="module" src="/src/main.ts"></script>');
-    writeFileSync(join(dir, 'src/main.ts'), `
-      document.body.dataset.app = 'production-app-ready';
-      if (import.meta.env.DEV) {
-        import(${JSON.stringify(sdkPath)}).then(({ mount }) => mount());
-      }
-    `);
-    // Vitest sets NODE_ENV=test; reproduce the environment of a real production build.
-    vi.stubEnv('NODE_ENV', 'production');
-    let result;
-    try {
-      result = await build({ root: dir, configFile, logLevel: 'silent', build: { write: false } });
-    } finally { vi.unstubAllEnvs(); }
-    const output = (Array.isArray(result) ? result[0] : result) as { output: { fileName: string; code?: string; source?: string | Uint8Array; modules?: Record<string, unknown> }[] };
-    const emitted = output.output.map((entry) => entry.code ?? String(entry.source ?? '')).join('\n');
-    expect(emitted).toContain('production-app-ready');
-    expect(emitted).not.toContain('__ANNOTOO_COMMENTS__');
-    expect(emitted).not.toContain('__ANNOTOO_DEV__');
+    writeFileSync(file, sentinel); // An inactive plugin must never parse this.
+    const output = await build({ root: dir, configFile: false, logLevel: 'silent', plugins: [annotoo()], build: { write: false } });
+    const result = (Array.isArray(output) ? output[0] : output) as { output: { source?: string | Uint8Array; code?: string }[] };
+    const emitted = result.output.map(entry => entry.code ?? String(entry.source ?? '')).join('\n');
     expect(emitted).not.toContain(sentinel);
+    expect(emitted).not.toContain('ANNOTOO');
     expect(emitted).not.toContain('annotoo-root');
-    expect(output.output.flatMap((entry) => Object.keys(entry.modules ?? {})).some((id) => id.includes('/packages/core/'))).toBe(false);
-    expect(output.output.filter((entry) => entry.fileName.endsWith('.js'))).toHaveLength(1);
+    expect(result.output).toHaveLength(1);
+    rmSync(file);
+    rmSync(comments, { recursive: true });
+    await build({ root: dir, configFile: false, logLevel: 'silent', plugins: [annotoo()], build: { write: false } });
+    expect(existsSync(file)).toBe(false);
+    expect(existsSync(comments)).toBe(false);
+  });
 
+  test('viewer opt-in embeds discussions and bundles an automatic read-only mount with the hosting base', async () => {
+    writeFileSync(file, JSON.stringify([annotation()]));
+    const output = await build({ root: dir, base: '/review/', configFile: false, logLevel: 'silent', plugins: [annotoo({ build: 'viewer' })], build: { write: false, minify: false } });
+    const result = (Array.isArray(output) ? output[0] : output) as { output: { source?: string | Uint8Array; code?: string; fileName: string }[] };
+    const html = String(result.output.find(entry => entry.fileName === 'index.html')?.source);
+    const code = result.output.map(entry => entry.code ?? '').join('\n');
+    expect(html).toContain('__ANNOTOO_COMMENTS__');
+    expect(html).not.toContain('__ANNOTOO_DEV__');
+    expect(code).toContain('__ANNOTOO_AUTO_MOUNT__');
+    expect(code).toMatch(/"mode": "viewer"/);
+    expect(code).toMatch(/"basePath": "\/review\/"/);
+    expect(html).toContain('/review/assets/');
+  });
+
+  test('manual mount option preserves hints but injects no automatic boot module', async () => {
     await server.close();
-    server = await createServer({ root: dir, configFile, logLevel: 'silent', server: { port: 0, host: '127.0.0.1' } });
+    server = await createServer({ root: dir, configFile: false, logLevel: 'silent', plugins: [annotoo({ autoMount: false })], server: { host: '127.0.0.1', port: 0 } });
     await server.listen();
     const address = server.httpServer!.address() as { port: number };
-    base = `http://127.0.0.1:${address.port}`;
-    expect((await (await fetch(`${base}/`)).text())).toContain('__ANNOTOO_DEV__');
-    expect((await get()).annotations[0].body).toBe(sentinel);
-    const source = await server.transformRequest('/src/main.ts');
-    expect(source?.code).toContain('"DEV": true');
-    expect(source?.code).toContain('mount');
-    expect(source?.code).toContain('/packages/core/src/index.ts');
+    const html = await (await fetch(`http://127.0.0.1:${address.port}/`)).text();
+    expect(html).toContain('__ANNOTOO_DEV__');
+    expect(html).not.toContain('/@annotoo/boot.js');
+  });
+
+  test('automatic development boot uses the custom endpoint and absolute base with singleton/HMR disposal', async () => {
+    await server.close();
+    server = await createServer({ root: dir, base: '/review/', configFile: false, logLevel: 'silent', plugins: [annotoo({ endpoint: '/custom/comments' })], server: { host: '127.0.0.1', port: 0 } });
+    await server.listen();
+    const address = server.httpServer!.address() as { port: number };
+    const url = `http://127.0.0.1:${address.port}`;
+    const html = await (await fetch(`${url}/review/`)).text();
+    expect(html).toContain('/custom/comments');
+    expect(html).toContain('/@annotoo/boot.js');
+    const boot = await (await fetch(`${url}/review/@annotoo/boot.js`)).text();
+    expect(boot).toContain('__ANNOTOO_AUTO_MOUNT__');
+    expect(boot).toContain('instance.destroy()');
+    expect(boot).toContain('"endpoint":"/custom/comments"');
+    expect(boot).toContain('"basePath":"/review/"');
+    expect((await (await fetch(`${url}/custom/comments`)).json()).annotoo).toBe(1);
   });
 
   test('production snapshots safely escape script-closing content and embed no runtime endpoint', async () => {
     const malicious = { ...annotation(), body: '</script><script>alert(1)</script>' };
     await put([malicious], (await get()).revision);
-    const result = await build({ root: dir, configFile: false, logLevel: 'silent', plugins: [annotoo()], build: { write: false } });
+    const result = await build({ root: dir, configFile: false, logLevel: 'silent', plugins: [annotoo({ build: 'viewer', autoMount: false })], build: { write: false } });
     const output = (Array.isArray(result) ? result[0] : result) as { output: { fileName: string; source?: string | Uint8Array }[] };
     const html = String(output.output.find((entry) => entry.fileName === 'index.html')?.source);
     expect(html).toContain('\\u003c/script>\\u003cscript>alert(1)\\u003c/script>');

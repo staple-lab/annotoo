@@ -10,6 +10,13 @@ export default defineConfig([
     clean: true,
     sourcemap: true,
   },
+  {
+    entry: { vite: 'src/vite/index.ts' },
+    format: ['esm'],
+    dts: true,
+    target: 'node18',
+    platform: 'node',
+  },
   // Script-tag entry: a single self-booting IIFE. scripts/inline-self.mjs then embeds a
   // copy of this bundle into itself so "Export HTML" can produce a self-contained file.
   {

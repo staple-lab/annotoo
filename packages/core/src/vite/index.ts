@@ -1,11 +1,16 @@
-import { mkdirSync, realpathSync } from 'node:fs';
+import { realpathSync } from 'node:fs';
 import { relative, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Connect, Plugin } from 'vite';
-import { assertSafePath, collaborators, ensureLegacy, gitIdentity, gitRoot, prepareChanges, projectDirectory, readSnapshot, relativePath, RequestError, validateThreads, withWriteLock, writeChanges } from './storage';
+import { assertSafePath, collaborators, gitIdentity, gitRoot, prepareChanges, projectDirectory, readSnapshot, relativePath, RequestError, validateThreads, withWriteLock, writeChanges } from './storage';
 
 export type AnnotooPluginOptions = {
   /** Legacy annotations file, relative to the Vite root. Default `src/annotoo.annotations.json`. Kept for existing imports. */
   file?: string;
+  /** Production builds are inactive unless explicitly enabled as a read-only viewer. */
+  build?: 'viewer';
+  /** Automatically mount the widget. Disable when supplying your own mount() call. */
+  autoMount?: boolean;
   /** Git-tracked thread directory, relative to the Git repository root (or Vite root outside Git). Default `.annotoo.comments`. */
   commentsDir?: string;
   /** Endpoint the widget talks to. Must match the widget's `endpoint`. Default `/__annotoo/annotations`. */
@@ -29,10 +34,16 @@ function readBody(req: Connect.IncomingMessage): Promise<string> {
 export function serialize(annotations: unknown[]): string { return JSON.stringify(annotations, null, 2) + '\n'; }
 function scriptJson(value: unknown): string { return JSON.stringify(value).replace(/</g, '\\u003c'); }
 
-/** Git-backed review threads during development, with a read-only snapshot embedded in production builds. */
+/** Automatic Git-backed review in development; production is untouched unless build: 'viewer'. */
 export default function annotoo(options: AnnotooPluginOptions = {}): Plugin {
   const endpoint = options.endpoint ?? '/__annotoo/annotations';
   if (!endpoint.startsWith('/') || endpoint.startsWith('//') || /[?#\s<>]/.test(endpoint)) throw new Error('[annotoo] endpoint must be a same-origin URL path');
+  const bootId = '/@annotoo/boot.js';
+  const resolvedBootId = '\0annotoo:boot';
+  const runtimeId = 'virtual:annotoo/runtime';
+  const runtimeFile = fileURLToPath(new URL(import.meta.url.endsWith('.ts') ? '../index.ts' : './index.js', import.meta.url));
+  let development = false;
+  let base = '/';
   let file = '';
   let root = '';
   let repository = '';
@@ -44,7 +55,10 @@ export default function annotoo(options: AnnotooPluginOptions = {}): Plugin {
   };
   return {
     name: 'annotoo',
+    apply: (_config, environment) => environment.command === 'serve' || options.build === 'viewer',
     configResolved(config) {
+      development = config.command === 'serve';
+      base = config.base;
       root = realpathSync(config.root);
       repository = gitRoot(root);
       project = relative(repository, root).split(sep).join('/') || '.';
@@ -52,8 +66,21 @@ export default function annotoo(options: AnnotooPluginOptions = {}): Plugin {
       // Validate against the Git root too, so a nested Vite project cannot traverse a symlink.
       assertSafePath(repository, file);
       commentsDir = relativePath(repository, options.commentsDir ?? '.annotoo.comments', 'commentsDir');
-      ensureLegacy(repository, file);
-      mkdirSync(commentsDir, { recursive: true });
+      // Reading reviews never creates files. The first save creates its thread directory.
+    },
+    resolveId(id) {
+      if (id === bootId) return resolvedBootId;
+      if (id === runtimeId) return runtimeFile;
+    },
+    load(id) {
+      if (id !== resolvedBootId) return;
+      const mountOptions = { mode: development ? 'auto' : 'viewer', ...(development ? { endpoint } : {}), ...(base.startsWith('/') ? { basePath: base } : {}) };
+      return `import { mount } from ${JSON.stringify(runtimeId)};
+const key = '__ANNOTOO_AUTO_MOUNT__';
+const instance = window[key] || (window[key] = mount(${scriptJson(mountOptions)}));
+if (import.meta.hot) import.meta.hot.dispose(() => {
+  if (window[key] === instance) { instance.destroy(); delete window[key]; }
+});`;
     },
     configureServer(server) {
       server.watcher.add(commentsDir);
@@ -97,9 +124,15 @@ export default function annotoo(options: AnnotooPluginOptions = {}): Plugin {
     transformIndexHtml: {
       order: 'pre',
       handler(_html, ctx) {
-        if (ctx.server) return [{ tag: 'script', children: `window.__ANNOTOO_DEV__=${scriptJson({ endpoint })};`, injectTo: 'head-prepend' }];
-        const { annotations, deletedIds } = readSnapshot(repository, file, commentsDir, project);
-        return [{ tag: 'script', children: `window.__ANNOTOO_COMMENTS__=${scriptJson({ annotations, deletedIds })};`, injectTo: 'head-prepend' }];
+        const tags = [];
+        if (ctx.server) {
+          tags.push({ tag: 'script', children: `window.__ANNOTOO_DEV__=${scriptJson({ endpoint })};`, injectTo: 'head-prepend' as const });
+        } else {
+          const { annotations, deletedIds } = readSnapshot(repository, file, commentsDir, project);
+          tags.push({ tag: 'script', children: `window.__ANNOTOO_COMMENTS__=${scriptJson({ annotations, deletedIds })};`, injectTo: 'head-prepend' as const });
+        }
+        if (options.autoMount !== false) tags.push({ tag: 'script', attrs: { type: 'module', src: bootId }, injectTo: 'head' as const });
+        return tags;
       },
     },
     // Polling reads collaborator changes; skip reloads so in-progress replies survive file updates.

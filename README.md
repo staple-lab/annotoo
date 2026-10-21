@@ -4,7 +4,7 @@
 
 **Annotations and discussions beside your prototype's UI.** Point at an element,
 leave a note, and reply, assign or resolve with your team. Threads travel with your code
-through Git; published prototypes show a read-only snapshot.
+through Git; optionally publish a read-only review copy.
 
 [Live demo](https://staple-lab.github.io/annotoo/demo/) ·
 [Documentation](https://staple-lab.github.io/annotoo/) ·
@@ -14,85 +14,52 @@ through Git; published prototypes show a read-only snapshot.
 
 ## One package, any framework
 
-Install the [v0.2.0 release package](https://github.com/staple-lab/annotoo/releases/tag/v0.2.0):
+Install the [v0.3.0 release package](https://github.com/staple-lab/annotoo/releases/tag/v0.3.0):
 
 ```bash
-npm install https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-annotoo-0.2.0.tgz
+npm install https://github.com/staple-lab/annotoo/releases/download/v0.3.0/staplelab-annotoo-0.3.0.tgz
 ```
 
-Call `mount()` once from your browser entry point, outside components. These Vite
-examples load the widget only in development and clean up on hot reload.
+Add Annotoo to your Vite config. It starts automatically in development, saves threads
+in `.annotoo.comments/`, and stays out of production builds by default. No component,
+browser setup or empty annotation file is needed.
 
-### JavaScript · `src/main.js`
-
-```js
-// Start your app first.
-if (import.meta.env.DEV) {
-  const { mount } = await import('@staplelab/annotoo');
-  const instance = mount({ mode: 'author' });
-  import.meta.hot?.dispose(() => instance.destroy());
-}
-```
-
-### React · `src/main.tsx`
-
-```tsx
-import { createRoot } from 'react-dom/client';
-import App from './App';
-
-createRoot(document.getElementById('root')!).render(<App />);
-
-if (import.meta.env.DEV) {
-  const { mount } = await import('@staplelab/annotoo');
-  const instance = mount({ mode: 'author' });
-  import.meta.hot?.dispose(() => instance.destroy());
-}
-```
-
-### Vue · `src/main.ts`
+### JavaScript · `vite.config.ts`
 
 ```ts
-import { createApp } from 'vue';
-import App from './App.vue';
-
-createApp(App).mount('#app');
-
-if (import.meta.env.DEV) {
-  const { mount } = await import('@staplelab/annotoo');
-  const instance = mount({ mode: 'author' });
-  import.meta.hot?.dispose(() => instance.destroy());
-}
-```
-
-Without the plugin below, author mode saves only in this browser. In server-rendered
-apps, initialize in the browser entry. `process.dev` is not standard; use
-`process.env.NODE_ENV` only where your bundler supports it.
-
-## Optional: save threads in Git
-
-```bash
-npm install -D https://github.com/staple-lab/annotoo/releases/download/v0.2.0/staplelab-vite-plugin-annotoo-0.2.0.tgz
-```
-
-```ts
-// vite.config.ts
 import { defineConfig } from 'vite';
-import annotoo from '@staplelab/vite-plugin-annotoo';
+import annotoo from '@staplelab/annotoo/vite';
 
-export default defineConfig(({ command }) => ({
-  plugins: [
-    // Keep your existing framework plugins here.
-    ...(command === 'serve' ? [annotoo()] : []),
-  ],
-}));
+export default defineConfig({
+  plugins: [annotoo()],
+});
 ```
 
-**Development only needs both guards:** `import.meta.env.DEV` removes the widget;
-`command === 'serve'` prevents the plugin embedding thread data in production HTML.
+### React · `vite.config.ts`
 
-The plugin saves one file per thread in `.annotoo.comments/`, grouped by app.
-It preserves existing `src/annotoo.annotations.json` notes and creates an empty file
-if needed. Commit both with your prototype.
+```ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import annotoo from '@staplelab/annotoo/vite';
+
+export default defineConfig({
+  plugins: [react(), annotoo()],
+});
+```
+
+### Vue · `vite.config.ts`
+
+```ts
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import annotoo from '@staplelab/annotoo/vite';
+
+export default defineConfig({
+  plugins: [vue(), annotoo()],
+});
+```
+
+Keep your existing plugins. Run your usual development command and open the cockatoo tab.
 
 ## Collaborate
 
@@ -121,33 +88,20 @@ thread may need a Git merge. See the [collaboration guide](docs/collaboration.md
 
 ## Publish a review copy
 
-To include discussions in a deployed prototype, deliberately enable the plugin for builds:
+Opt in to a read-only snapshot in your Vite config:
 
 ```ts
-// vite.config.ts — keep the imports and your existing framework plugins
-export default defineConfig({
-  plugins: [annotoo()],
-});
+annotoo({ build: 'viewer' })
 ```
 
-Replace the guarded bootstrap block with:
-
-```ts
-import { mount } from '@staplelab/annotoo';
-import annotations from './annotoo.annotations.json';
-
-const instance = mount({ annotations });
-import.meta.hot?.dispose(() => instance.destroy());
-```
-
-Development uses author mode; builds embed a read-only snapshot. Rebuild and deploy to
-publish changes. Hosted viewers need no backend or account. Browser-local edits do not
-update Git or other visitors' copies. The public demo uses fictional contributors.
+The build includes the widget and discussions. Rebuild and deploy to publish changes.
+Hosted viewers need no backend or account. Browser-local edits do not update Git or
+other visitors' copies. The public demo uses fictional contributors.
 
 ## Plain HTML
 
 ```html
-<script src="https://staple-lab.github.io/annotoo/releases/v0.2.0/annotoo.js"></script>
+<script src="https://staple-lab.github.io/annotoo/releases/v0.3.0/annotoo.js"></script>
 ```
 
 The script starts automatically and saves in your browser. **Export HTML** creates a

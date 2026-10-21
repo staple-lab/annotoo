@@ -13,6 +13,10 @@ const tool = (page: Page, label: string) => ui(page).locator(`button[aria-label=
 const openToolbar = (page: Page) => tool(page, 'Open Annotoo').click();
 
 test.describe('dev server: author mode', () => {
+  test.beforeAll(() => {
+    // An interrupted previous run may not have reached afterAll.
+    rmSync('.annotoo.comments-e2e', { recursive: true, force: true });
+  });
   test.afterAll(() => {
     rmSync('.annotoo.comments-e2e', { recursive: true, force: true });
   });
