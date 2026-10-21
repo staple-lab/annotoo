@@ -194,13 +194,13 @@ export function createWidget(opts: WidgetOptions): Widget {
   function syncWriteControls(): void {
     const focused = ui.shadow.activeElement;
     const focusedLabel = focused instanceof HTMLElement && thread?.contains(focused) ? focused.getAttribute('aria-label') : null;
-    for (const node of ui.shadow.querySelectorAll<HTMLButtonElement>('[data-write]')) {
+    for (const node of ui.shadow.querySelectorAll<HTMLButtonElement | HTMLSelectElement>('[data-write]')) {
       node.disabled = pending || !canWrite() || node.dataset.empty === 'true';
     }
     for (const field of ui.shadow.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('.editor input, .editor textarea, .thread textarea')) field.readOnly = pending;
     editor?.setAttribute('aria-busy', String(pending));
     thread?.setAttribute('aria-busy', String(pending));
-    if (pending && focused instanceof HTMLButtonElement && focused.disabled && focusedLabel && thread?.contains(focused)) {
+    if (pending && (focused instanceof HTMLButtonElement || focused instanceof HTMLSelectElement) && focused.disabled && focusedLabel && thread?.contains(focused)) {
       // Native disabled buttons lose focus. Keep its place in the discussion while saving.
       pendingThreadFocusLabel = focusedLabel;
       thread.focus({ preventScroll: true });
@@ -894,7 +894,7 @@ export function createWidget(opts: WidgetOptions): Widget {
     threadTrigger = null;
     if (restoreFocus && opener) {
       const target = opener.element.isConnected ? opener.element : Array.from(ui.shadow.querySelectorAll<HTMLElement>('[aria-label]')).find((node) => node.getAttribute('aria-label') === opener.label);
-      if (target && !(target instanceof HTMLButtonElement && target.disabled)) target.focus({ preventScroll: true });
+      if (target && !((target instanceof HTMLButtonElement || target instanceof HTMLSelectElement) && target.disabled)) target.focus({ preventScroll: true });
       else (panel?.querySelector<HTMLElement>('.item, button') ?? dock?.querySelector<HTMLElement>('button'))?.focus({ preventScroll: true });
     }
   }
@@ -928,6 +928,60 @@ export function createWidget(opts: WidgetOptions): Widget {
       if (threadId === id) { const field = thread?.querySelector<HTMLTextAreaElement>('textarea'); if (field) field.value = ''; }
       showToast('Reply added');
     }, (message) => threadErrors.set(id, message));
+  }
+
+  function collaborators(): CommentAuthor[] {
+    // A server directory is authoritative, including an intentionally empty directory.
+    if (opts.storage.collaborators !== undefined) return opts.storage.collaborators;
+    const people = new Map<string, CommentAuthor>();
+    const add = (person?: CommentAuthor) => { if (person) people.set(person.id, person); };
+    for (const item of annotations) {
+      add(item.author); add(item.updatedBy); add(item.assignee); add(item.resolvedBy);
+      for (const reply of item.replies ?? []) add(reply.author);
+      for (const event of item.events ?? []) { add(event.author); add(event.assignee); }
+    }
+    add(currentAuthor());
+    return [...people.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  function assignThread(id: string, person?: CommentAuthor): void {
+    const a = annotations.find((item) => item.id === id);
+    if (!a || pending || !canWrite() || a.assignee?.id === person?.id) return;
+    if (person && !collaborators().some((candidate) => candidate.id === person.id)) return;
+    threadErrors.delete(id);
+    commit(annotations.map((item) => {
+      if (item.id !== id) return item;
+      const next: Annotation = { ...item, events: [...(item.events ?? []), {
+        id: newId(), type: person ? 'assigned' : 'unassigned', author: currentAuthor(), createdAt: Date.now(),
+        ...(person ? { assignee: person } : {}),
+      }] };
+      if (person) next.assignee = person;
+      else delete next.assignee;
+      return next;
+    }), () => showToast(person ? `Assigned to ${person.name}` : 'Thread unassigned'), (message) => threadErrors.set(id, message));
+  }
+
+  function assignmentControls(a: Annotation): HTMLElement {
+    const owner = el('div', { class: 'owner-label' }, [`Assignee · ${a.assignee?.name ?? 'Unassigned'}`]);
+    if (!author) return el('div', { class: 'thread-assignment' }, [owner]);
+    const people = collaborators();
+    const picker = el('select', {
+      'aria-label': 'Assign thread to', 'data-write': '', disabled: pending || !canWrite(),
+      onChange: (event: Event) => {
+        const id = (event.target as HTMLSelectElement).value;
+        assignThread(a.id, people.find((person) => person.id === id));
+      },
+    }, [el('option', { value: '' }, ['Unassigned']), ...people.map((person) => el('option', { value: person.id }, [person.name]))]);
+    // Retain a removed collaborator's ownership until explicitly reassigned.
+    if (a.assignee && !people.some((person) => person.id === a.assignee!.id)) picker.append(el('option', { value: a.assignee.id, disabled: true }, [a.assignee.name]));
+    picker.value = a.assignee?.id ?? '';
+    const me = people.find((person) => person.id === currentAuthor().id);
+    return el('div', { class: 'thread-assignment' }, [owner, picker,
+      el('div', { class: 'assignment-actions' }, [
+        el('button', { class: 'btn ghost', type: 'button', 'aria-label': 'Assign to me', 'data-write': '', 'data-empty': String(!me || a.assignee?.id === me.id), disabled: pending || !canWrite() || !me || a.assignee?.id === me.id, onClick: () => { if (me) assignThread(a.id, me); } }, ['Assign to me']),
+        el('button', { class: 'btn ghost', type: 'button', 'aria-label': 'Unassign thread', 'data-write': '', 'data-empty': String(!a.assignee), disabled: pending || !canWrite() || !a.assignee, onClick: () => assignThread(a.id) }, ['Unassign']),
+      ]),
+    ]);
   }
 
   function changeThreadStatus(id: string): void {
@@ -965,7 +1019,7 @@ export function createWidget(opts: WidgetOptions): Widget {
       if (!hadThreadFocus || !thread) return;
       const statusLabel = focusLabel === 'Resolve thread' || focusLabel === 'Reopen thread';
       const target = statusLabel ? thread.querySelector<HTMLElement>('[aria-label="Resolve thread"], [aria-label="Reopen thread"]') : Array.from(thread.querySelectorAll<HTMLElement>('[aria-label]')).find((node) => node.getAttribute('aria-label') === focusLabel);
-      const available = target && !(target instanceof HTMLButtonElement && target.disabled) ? target : thread.querySelector<HTMLElement>('textarea') ?? thread.querySelector<HTMLElement>('[aria-label="Close thread"]');
+      const available = target && !((target instanceof HTMLButtonElement || target instanceof HTMLSelectElement) && target.disabled) ? target : thread.querySelector<HTMLElement>('textarea') ?? thread.querySelector<HTMLElement>('[aria-label="Close thread"]');
       available?.focus({ preventScroll: true });
       pendingThreadFocusLabel = null;
     };
@@ -990,7 +1044,7 @@ export function createWidget(opts: WidgetOptions): Widget {
     ]);
     const timeline = [
       ...(a.replies ?? []).map((reply) => ({ at: reply.createdAt, node: el('article', { class: 'comment reply', dataset: { replyId: reply.id } }, [authorLine(reply.author, reply.createdAt), el('div', { class: 'comment-body' }, [reply.body])]) })),
-      ...(a.events ?? []).map((event) => ({ at: event.createdAt, node: el('div', { class: 'thread-event' }, [`${event.author.name} ${event.type} this thread`, el('time', { datetime: new Date(event.createdAt).toISOString() }, [new Date(event.createdAt).toLocaleString()])]) })),
+      ...(a.events ?? []).map((event) => ({ at: event.createdAt, node: el('div', { class: 'thread-event' }, [`${event.author.name} ${event.type === 'assigned' ? `assigned this thread to ${event.assignee?.name ?? 'a collaborator'}` : event.type === 'unassigned' ? 'unassigned this thread' : `${event.type} this thread`}`, el('time', { datetime: new Date(event.createdAt).toISOString() }, [new Date(event.createdAt).toLocaleString()])]) })),
     ].sort((x, y) => x.at - y.at);
     for (const entry of timeline) history.append(entry.node);
     if (a.status === 'resolved' && !(a.events ?? []).some((event) => event.type === 'resolved')) {
@@ -1022,6 +1076,7 @@ export function createWidget(opts: WidgetOptions): Widget {
     thread = el('section', { class: `surface thread${corner()}`, role: 'dialog', tabindex: -1, 'aria-label': `Thread ${a.n}`, 'aria-busy': String(pending) }, [
       el('div', { class: 'panel-head' }, [el('span', { class: 'title' }, [`Thread #${a.n}`]), statusBadge(a), el('span', { class: 'grow' }), el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Close thread', onClick: () => closeThread() }, [icon('x')])]),
       context,
+      assignmentControls(a),
       history,
       error ? el('div', { class: 'save-error', role: 'alert' }, [error]) : null,
       author ? el('div', { class: 'thread-composer' }, [
@@ -1072,6 +1127,7 @@ export function createWidget(opts: WidgetOptions): Widget {
           a.title ? el('div', { class: 't' }, [a.title]) : null,
           el('div', { class: 'b' }, [a.body]),
           el('div', { class: 'item-meta' }, [a.author?.name || 'Unattributed', ` · ${(a.replies ?? []).length} ${(a.replies ?? []).length === 1 ? 'reply' : 'replies'}`]),
+          el('div', { class: 'item-owner' }, [`Assignee · ${a.assignee?.name ?? 'Unassigned'}`]),
           !isOnRoute(a, route) && a.route ? el('div', { class: 'route' }, [a.route]) : null,
         ]),
       ]);

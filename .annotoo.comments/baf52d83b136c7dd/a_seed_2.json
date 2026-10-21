@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "project": "examples/vite-react",
+  "thread": {
+    "id": "a_seed_2",
+    "n": 2,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"command-search\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "\u2318K opens the command palette from anywhere. The pill is a button labelled \"Search\" for screen readers.",
+    "category": "accessibility",
+    "createdAt": 1791883200000,
+    "route": "/",
+    "author": {
+      "id": "demo:sam-lee",
+      "name": "Sam Lee"
+    },
+    "replies": [
+      {
+        "id": "a_seed_2_sample_reply",
+        "body": "I will check this in the next review. Keeping the context here makes the follow-up easy to find.",
+        "author": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "createdAt": 1792562460000
+      }
+    ],
+    "events": [
+      {
+        "id": "a_seed_2_assigned",
+        "type": "assigned",
+        "author": {
+          "id": "demo:sam-lee",
+          "name": "Sam Lee"
+        },
+        "assignee": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "createdAt": 1792562500000
+      },
+      {
+        "id": "a_seed_2_unassigned",
+        "type": "unassigned",
+        "author": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "createdAt": 1792562550000
+      }
+    ]
+  }
+}

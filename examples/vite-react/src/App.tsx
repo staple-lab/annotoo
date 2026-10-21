@@ -1,5 +1,3 @@
-import { Annotoo, type Annotation } from '@staplelab/annotoo-react';
-import annotations from './annotoo.annotations.json';
 import { Link, usePath } from './router';
 import { Icon, type IconName } from './icons';
 import { Analytics } from './pages/Analytics';
@@ -72,7 +70,6 @@ export function App() {
         </main>
       </div>
 
-      <Annotoo annotations={annotations as Annotation[]} />
     </div>
   );
 }

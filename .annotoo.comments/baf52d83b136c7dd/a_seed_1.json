@@ -18,8 +18,8 @@
     "route": "/",
     "title": "Total spend",
     "author": {
-      "id": "demo:designer",
-      "name": "Demo designer"
+      "id": "demo:jane-doe",
+      "name": "Jane Doe"
     },
     "status": "open",
     "replies": [
@@ -27,8 +27,8 @@
         "id": "demo_reply_1",
         "body": "Can we make the pricing assumption visible to reviewers?",
         "author": {
-          "id": "demo:engineer",
-          "name": "Demo engineer"
+          "id": "demo:sam-lee",
+          "name": "Sam Lee"
         },
         "createdAt": 1792562460000
       },
@@ -36,10 +36,29 @@
         "id": "demo_reply_2",
         "body": "Yes. This thread keeps that context beside the spend card, with the discussion versioned in Git.",
         "author": {
-          "id": "demo:designer",
-          "name": "Demo designer"
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
         },
         "createdAt": 1792562520000
+      }
+    ],
+    "assignee": {
+      "id": "demo:sam-lee",
+      "name": "Sam Lee"
+    },
+    "events": [
+      {
+        "id": "a_seed_1_assigned",
+        "type": "assigned",
+        "author": {
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
+        },
+        "assignee": {
+          "id": "demo:sam-lee",
+          "name": "Sam Lee"
+        },
+        "createdAt": 1792562550000
       }
     ]
   }

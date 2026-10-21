@@ -310,6 +310,7 @@ export function createAnnotationLayer(
           // The page, unless it's the root (a bare "/" says nothing).
           a.route && a.route !== '/' ? el('span', {}, [icon('file', 13), a.route]) : null,
         ]),
+        el('div', { class: 'note-owner' }, [`Assignee · ${a.assignee?.name ?? 'Unassigned'}`]),
         cb.onThread ? el('button', {
           class: 'open-thread', type: 'button', 'aria-label': `Open thread ${a.n}`,
           onClick: (e: Event) => { e.stopPropagation(); cb.onThread?.(a, e.currentTarget as HTMLElement); },

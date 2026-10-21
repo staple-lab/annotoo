@@ -3,14 +3,14 @@ import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 
-type Author = { id: string; name: string };
+export type Author = { id: string; name: string };
 type Reply = { id: string; body: string; author: Author; createdAt: number };
-type ThreadEvent = { id: string; type: 'resolved' | 'reopened'; author: Author; createdAt: number };
+type ThreadEvent = { id: string; type: 'resolved' | 'reopened' | 'assigned' | 'unassigned'; author: Author; createdAt: number; assignee?: Author };
 export type Thread = {
   id: string; n: number;
   anchor: { selector: string; textSnippet: string; offset: { x: number; y: number } };
   title?: string; body: string; category?: 'note' | 'interaction' | 'content' | 'accessibility' | 'development';
-  createdAt: number; updatedAt?: number; route?: string; author?: Author; updatedBy?: Author;
+  createdAt: number; updatedAt?: number; route?: string; author?: Author; updatedBy?: Author; assignee?: Author;
   replies?: Reply[]; status?: 'open' | 'resolved'; resolvedAt?: number; resolvedBy?: Author; events?: ThreadEvent[];
 };
 type RecordFile = { schemaVersion: 1; project: string; thread: Thread; deleted?: true };
@@ -75,6 +75,9 @@ export function validateThreads(value: unknown, stored = false): Thread[] {
     if (a.route !== undefined) thread.route = text(a.route, 'route', 2048);
     if (a.category !== undefined) thread.category = a.category as Thread['category'];
     if (a.status !== undefined) thread.status = a.status;
+    if (a.assignee !== undefined && a.assignee !== null) {
+      thread.assignee = stored ? author(a.assignee, 'assignee') : { id: text(object(a.assignee, 'assignee').id, 'assignee.id', 200, false), name: '' };
+    }
     if (a.replies !== undefined) {
       thread.replies = list(a.replies, 'replies', MAX_REPLIES).map((entry): Reply => {
         const reply = object(entry, 'reply');
@@ -95,8 +98,8 @@ export function validateThreads(value: unknown, stored = false): Thread[] {
       if (a.resolvedAt !== undefined) thread.resolvedAt = timestamp(a.resolvedAt, 'resolvedAt');
       if (a.events !== undefined) thread.events = list(a.events, 'events', MAX_EVENTS).map((entry): ThreadEvent => {
         const event = object(entry, 'event');
-        if (event.type !== 'resolved' && event.type !== 'reopened') throw new RequestError(400, 'Unknown thread event');
-        return { id: id(event.id, 'Event ID'), type: event.type, author: author(event.author, 'event.author'), createdAt: timestamp(event.createdAt, 'event.createdAt') };
+        if (event.type !== 'resolved' && event.type !== 'reopened' && event.type !== 'assigned' && event.type !== 'unassigned') throw new RequestError(400, 'Unknown thread event');
+        return { id: id(event.id, 'Event ID'), type: event.type, author: author(event.author, 'event.author'), createdAt: timestamp(event.createdAt, 'event.createdAt'), ...(event.assignee !== undefined ? { assignee: author(event.assignee, 'event.assignee') } : {}) };
       });
     }
     return thread;
@@ -105,8 +108,8 @@ export function validateThreads(value: unknown, stored = false): Thread[] {
   return threads;
 }
 
-function git(root: string, args: string[]): string {
-  try { return execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 4096 }).trim(); }
+function git(root: string, args: string[], maxBuffer = 4096): string {
+  try { return execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer }).trim(); }
   catch { return ''; }
 }
 export function gitRoot(viteRoot: string): string {
@@ -117,6 +120,29 @@ export function gitIdentity(root: string): { identity: Author | null; identityEr
   const email = git(root, ['config', '--get', 'user.email']).toLowerCase();
   if (!name || !email || name.length > 200 || !/^[^\s@]+@[^\s@]+$/.test(email)) return { identity: null, identityError: IDENTITY_GUIDANCE };
   return { identity: { id: `git:${createHash('sha256').update(email).digest('hex')}`, name } };
+}
+
+/** Only public display names and opaque IDs leave this development-only directory. */
+export function collaborators(root: string, snapshot: Snapshot): Author[] {
+  const known = new Map<string, Author>();
+  const add = (person?: Author | null) => { if (person) known.set(person.id, person); };
+  // The newest spelling wins for duplicate emails in history; saved discussion names
+  // and the local identity take precedence over historical Git display names.
+  const history = git(root, ['log', '-200', '--format=%an%x00%ae'], 1024 * 1024).split('\n').reverse();
+  for (const line of history) {
+    const [name, email] = line.split('\0');
+    if (name && name.length <= 200 && email && /^[^\s@]+@[^\s@]+$/.test(email)) {
+      add({ id: `git:${createHash('sha256').update(email.toLowerCase()).digest('hex')}`, name });
+    }
+  }
+  const threads = [...snapshot.annotations, ...[...snapshot.records.values()].map(record => record.thread)];
+  for (const thread of threads) {
+    add(thread.author); add(thread.updatedBy); add(thread.resolvedBy); add(thread.assignee);
+    for (const reply of thread.replies ?? []) add(reply.author);
+    for (const event of thread.events ?? []) { add(event.author); add(event.assignee); }
+  }
+  add(gitIdentity(root).identity);
+  return [...known.values()].sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
 }
 
 export function relativePath(root: string, configured: string, label: string): string {
@@ -194,7 +220,7 @@ export function readSnapshot(root: string, file: string, commentsDir: string, pr
 function editable(thread: Thread): unknown {
   return { anchor: thread.anchor, title: thread.title, body: thread.body, category: thread.category, route: thread.route };
 }
-export function prepareChanges(snapshot: Snapshot, requested: Thread[], actor: Author, project: string): Map<string, RecordFile> {
+export function prepareChanges(snapshot: Snapshot, requested: Thread[], actor: Author, project: string, directory: Author[] = [actor]): Map<string, RecordFile> {
   const changes = new Map<string, RecordFile>();
   const before = new Map(snapshot.annotations.map((thread) => [thread.id, thread]));
   const now = Date.now();
@@ -210,22 +236,29 @@ export function prepareChanges(snapshot: Snapshot, requested: Thread[], actor: A
     const requestedReplies = incoming.replies ?? [];
     if ((old?.replies ?? []).some((reply, index) => requestedReplies[index]?.id !== reply.id || requestedReplies[index]?.body !== reply.body)) throw new RequestError(400, 'Existing replies are append-only and cannot be edited, removed or reordered');
     const replies = requestedReplies.map((reply) => oldReplies.get(reply.id) ?? { id: reply.id, body: reply.body, author: actor, createdAt: now });
+    const assignee = incoming.assignee ? directory.find(person => person.id === incoming.assignee!.id) : undefined;
+    if (incoming.assignee && !assignee) throw new RequestError(400, 'Unknown collaborator. Refresh comments and choose a known collaborator.');
+    const assignmentChanged = old?.assignee?.id !== assignee?.id;
     const oldStatus = old?.status ?? 'open';
     const status = incoming.status ?? 'open';
-    const changed = restoring || !old || JSON.stringify(editable(old)) !== JSON.stringify(editable(incoming)) || JSON.stringify(old.replies ?? []) !== JSON.stringify(replies) || oldStatus !== status;
+    const changed = restoring || !old || JSON.stringify(editable(old)) !== JSON.stringify(editable(incoming)) || JSON.stringify(old.replies ?? []) !== JSON.stringify(replies) || oldStatus !== status || assignmentChanged;
     if (!changed) continue;
     const thread: Thread = {
       ...(old ?? {}), ...incoming,
       n: old?.n ?? ++nextNumber,
       createdAt: old?.createdAt ?? now,
       author: old?.author ?? (old ? undefined : actor),
-      replies, status,
+      replies, status, assignee,
       events: old?.events?.slice() ?? [],
     };
     if (old) { thread.updatedAt = now; thread.updatedBy = actor; }
     if (oldStatus !== status) {
       if (thread.events!.length >= MAX_EVENTS) throw new RequestError(400, 'This thread has reached its event limit');
       thread.events!.push({ id: randomUUID(), type: status === 'resolved' ? 'resolved' : 'reopened', author: actor, createdAt: now });
+    }
+    if (assignmentChanged) {
+      if (thread.events!.length >= MAX_EVENTS) throw new RequestError(400, 'This thread has reached its event limit');
+      thread.events!.push({ id: randomUUID(), type: assignee ? 'assigned' : 'unassigned', author: actor, createdAt: now, ...(assignee ? { assignee } : old?.assignee ? { assignee: old.assignee } : {}) });
     }
     if (status === 'resolved') {
       thread.resolvedAt = oldStatus === status ? old?.resolvedAt : now;

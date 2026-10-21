@@ -1,4 +1,4 @@
-import { Annotoo, type Annotation, type AnnotationStorage } from '@staplelab/annotoo-react';
+import { mount, type Annotation, type AnnotationStorage } from '@staplelab/annotoo';
 import seed from './annotoo.annotations.json';
 
 const KEY = 'annotoo-site:annotations';
@@ -51,12 +51,10 @@ export function resetAnnotations(): void {
   location.reload();
 }
 
-export function SiteAnnotoo() {
-  return (
-    <Annotoo
-      annotations={annotations}
-      basePath={import.meta.env.BASE_URL}
-      storage={import.meta.env.DEV ? undefined : visitorStorage}
-    />
-  );
+export function mountSiteAnnotoo() {
+  return mount({
+    annotations,
+    basePath: import.meta.env.BASE_URL,
+    storage: import.meta.env.DEV ? undefined : visitorStorage,
+  });
 }

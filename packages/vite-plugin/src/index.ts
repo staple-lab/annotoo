@@ -1,7 +1,7 @@
 import { mkdirSync, realpathSync } from 'node:fs';
 import { relative, sep } from 'node:path';
 import type { Connect, Plugin } from 'vite';
-import { assertSafePath, ensureLegacy, gitIdentity, gitRoot, prepareChanges, projectDirectory, readSnapshot, relativePath, RequestError, validateThreads, withWriteLock, writeChanges } from './storage';
+import { assertSafePath, collaborators, ensureLegacy, gitIdentity, gitRoot, prepareChanges, projectDirectory, readSnapshot, relativePath, RequestError, validateThreads, withWriteLock, writeChanges } from './storage';
 
 export type AnnotooPluginOptions = {
   /** Legacy annotations file, relative to the Vite root. Default `src/annotoo.annotations.json`. Kept for existing imports. */
@@ -40,7 +40,7 @@ export default function annotoo(options: AnnotooPluginOptions = {}): Plugin {
   let project = '';
   const payload = () => {
     const snapshot = readSnapshot(repository, file, commentsDir, project);
-    return { annotoo: 1, file: relative(root, file), commentsDir: relative(repository, commentsDir), project, annotations: snapshot.annotations, revision: snapshot.revision, ...gitIdentity(root) };
+    return { annotoo: 1, file: relative(root, file), commentsDir: relative(repository, commentsDir), project, annotations: snapshot.annotations, revision: snapshot.revision, collaborators: collaborators(root, snapshot), ...gitIdentity(root) };
   };
   return {
     name: 'annotoo',
@@ -83,7 +83,7 @@ export default function annotoo(options: AnnotooPluginOptions = {}): Plugin {
             const result = await withWriteLock(repository, projectDirectory(commentsDir, project), async () => {
               const snapshot = readSnapshot(repository, file, commentsDir, project);
               if (req.headers['if-match'] !== snapshot.revision) return { status: 409, body: { error: 'Comments changed since you loaded them. Refresh comments before retrying; your draft has not been saved.', revision: snapshot.revision } };
-              writeChanges(repository, projectDirectory(commentsDir, project), prepareChanges(snapshot, threads, identity.identity!, project));
+              writeChanges(repository, projectDirectory(commentsDir, project), prepareChanges(snapshot, threads, identity.identity!, project, collaborators(root, snapshot)));
               return { status: 200, body: payload() };
             });
             send(result.status, result.body);

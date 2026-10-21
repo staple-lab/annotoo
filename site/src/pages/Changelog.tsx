@@ -23,7 +23,7 @@ export function Changelog() {
           <li>Figma-style annotations: outline, numbered badge, connector and note, with five categories.</li>
           <li>Floating toolbar with Annotate, show and hide, list, settings and copy.</li>
           <li>Viewer settings for display mode, outlines, theme and toolbar position.</li>
-          <li>React component, Vite plugin that saves to your repo, and a script-tag build with self-contained HTML export.</li>
+          <li>Framework-free mount API, optional Vite plugin that saves to your repo, and a script-tag build with self-contained HTML export.</li>
           <li>Route-aware annotations that work when the build is hosted under a sub-path.</li>
         </ul>
       </section>

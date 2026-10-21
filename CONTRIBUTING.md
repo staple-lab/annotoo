@@ -22,7 +22,6 @@ Layout:
   `src/layer.ts` draws annotations (outline, badge, connector, note) and lays them out;
   `src/anchor.ts` re-finds elements; `src/router.ts` scopes annotations to pages; and
   `src/storage.ts` holds the adapters.
-- `packages/react`: a thin wrapper around `mount()`. Keep UI out of it.
 - `packages/vite-plugin`: Git identity, per-thread disk storage, the dev-server endpoint,
   and the merged discussion snapshot embedded during a production build.
 - `examples/*`: demo apps, also used as e2e targets.
@@ -43,7 +42,7 @@ Guidelines:
 - **Never break existing `annotoo.annotations.json` files.** Treat the `Annotation` type as
   a public format: add optional fields, don't rename or remove them.
 - **Keep thread history intact.** Replies and resolve/reopen events carry their own IDs,
-  author and timestamp. Retain history when resolving, reopening, or merging changes.
+  author and timestamp. Retain history when assigning, unassigning, resolving, reopening, or merging changes.
   Per-thread files use `schemaVersion: 1`; deleting a legacy note needs a retained
   deletion record so it does not reappear.
 - **Keep collaboration claims precise.** Clients of one dev server refresh from its
@@ -61,4 +60,4 @@ Guidelines:
 ## Releasing
 
 Releases are cut from `main` with [changesets](https://github.com/changesets/changesets).
-The three packages are versioned together.
+The framework-agnostic package and optional Vite plugin are versioned together.

@@ -15,6 +15,40 @@
     "body": "Each thread file contains a versioned envelope with project and thread fields. The thread carries its page, anchor, author, replies and resolution history.",
     "category": "development",
     "createdAt": 1791882540000,
-    "route": "/schema"
+    "route": "/schema",
+    "author": {
+      "id": "demo:alex-rivera",
+      "name": "Alex Rivera"
+    },
+    "assignee": {
+      "id": "demo:jane-doe",
+      "name": "Jane Doe"
+    },
+    "replies": [
+      {
+        "id": "site_9_sample_reply",
+        "body": "I will check this in the next review. Keeping the context here makes the follow-up easy to find.",
+        "author": {
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
+        },
+        "createdAt": 1792562460000
+      }
+    ],
+    "events": [
+      {
+        "id": "site_9_assigned",
+        "type": "assigned",
+        "author": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "assignee": {
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
+        },
+        "createdAt": 1792562550000
+      }
+    ]
   }
 }

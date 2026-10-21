@@ -5,10 +5,27 @@ Vite plugin for this workflow. There is no separate Annotoo backend or account.
 
 ## 1. Set up your prototype
 
-Follow the [React and Vite quick start](../README.md#quick-start-react--vite). Add
-`annotoo()` to the Vite plugins and render `<Annotoo annotations={annotations} />` once,
-using your existing `src/annotoo.annotations.json` import. The plugin creates that file
-with `[]` if needed. Existing notes stay valid.
+Follow the [framework examples](../README.md#one-package-any-framework). Add
+`annotoo()` to the Vite plugins and call `mount()` once from your browser bootstrap,
+outside components. For development only, use both the guarded dynamic import and this
+plugin guard (keeping your existing framework plugins):
+
+```ts
+export default defineConfig(({ command }) => ({
+  plugins: [
+    // Keep your existing framework plugins here.
+    ...(command === 'serve' ? [annotoo()] : []),
+  ],
+}));
+```
+
+The import guard removes the widget; the plugin guard prevents a thread snapshot being
+embedded in production HTML. Destroy the mounted instance in
+`import.meta.hot?.dispose(() => instance.destroy())` to clean up on hot reload.
+
+For a published viewer, deliberately use unconditional `plugins: [annotoo()]` alongside
+your framework plugins and pass the `src/annotoo.annotations.json` import to `mount()`.
+The plugin creates that file with `[]` if needed. Existing notes stay valid.
 
 In your local clone, check the identity Git will use:
 
@@ -46,6 +63,17 @@ Start the prototype's development server as usual.
 
 Old notes without an author are shown as **Unattributed**. A new reply adds its own
 author without inventing an identity for the original note.
+
+Assign the next step to a teammate in the thread, or unassign it when no one owns it.
+The opening author, reply authors and assignee are separate: assigning work does not
+change who wrote a comment. Assignment events remain in the history. The picker draws from your current Git identity,
+authors in local Git history, and participants already stored in threads. Names and
+hashed IDs identify them; a raw email directory is not published in the hosted viewer.
+The hosted viewer can read the saved assignee but cannot edit it.
+
+![A discussion beside the prototype](screenshots/threads.jpg)
+
+![Choosing an assignee](screenshots/assignment.jpg)
 
 ## 3. Share through Git
 
@@ -91,7 +119,7 @@ If Git reports a conflict:
    time. Do the same for resolution events; do not duplicate records with the same ID.
 3. Decide whether the thread should currently be open or resolved. Keep `status`,
    `resolvedAt` and `resolvedBy` consistent with that decision while retaining its event
-   history. Discuss deletion-versus-reply conflicts with the other contributor before
+   history. Keep the current assignee and assignment events consistent too. Discuss deletion-versus-reply conflicts with the other contributor before
    choosing whether the thread remains deleted.
 4. Remove conflict markers, validate the JSON, then finish the merge with your usual
    Git workflow. Open the thread in the running prototype to verify the result.
@@ -102,7 +130,7 @@ discard another person's reply. The Git history remains available for review.
 ## 5. Publish a review copy
 
 Build and deploy the prototype as usual. The Vite plugin embeds the current merged
-threads, including replies and resolution history, even when your component still
+threads, including replies and resolution history, even when your bootstrap still
 imports the legacy annotation array.
 
 The normal hosted viewer is read-only. It has no Git credentials or shared write

@@ -9,9 +9,9 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@staplelab/annotoo-react": "workspace:*",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "@staplelab/annotoo": "workspace:*"
   },
   "devDependencies": {
     "@staplelab/vite-plugin-annotoo": "workspace:*",

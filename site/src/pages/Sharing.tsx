@@ -24,6 +24,14 @@ export function Sharing() {
         page's open pins without losing their history.
       </p>
 
+      <h2>Assign the next step</h2>
+      <p>Choose an assignee in the thread so the team knows who owns the next step. Unassign
+        it when no one owns it. Assignment keeps the original authors and replies intact,
+        and changes appear in the thread history alongside resolve and reopen events.</p>
+      <p>The picker includes your current Git identity, authors from local Git history, and
+        participants already stored in threads. It uses names and hashed IDs. A hosted viewer
+        shows the saved assignee without publishing a raw email directory or allowing edits.</p>
+      <figure><img src={`${import.meta.env.BASE_URL}screenshots/assignment.jpg`} alt="Assigning a prototype discussion to a teammate" loading="lazy" style={{ width: '100%', borderRadius: 12 }} /></figure>
       <h2>Exchange changes through Git</h2>
       <p>
         Threads are separate JSON files inside <code>.annotoo.comments/</code> at the repository
@@ -48,7 +56,7 @@ git push`} />
         Separate files keep unrelated threads apart, but Git can still report a conflict in one
         thread. Use your normal merge tool. Keep one valid JSON envelope, preserve both people's
         replies and resolution events with their original IDs, and decide the current open or
-        resolved status. If one side deleted the thread while the other replied, agree which
+        resolved status and current assignee. Preserve assignment events too. If one side deleted the thread while the other replied, agree which
         outcome to keep. Remove conflict markers, finish the merge, and open the discussion in
         the prototype to check it. Annotoo does not silently resolve Git conflicts for you.
       </p>
@@ -99,9 +107,22 @@ git push`} />
 
       <h2>Keeping it out of production</h2>
       <p>
-        If the same build goes to real users, render Annotoo only where you want it, for example{' '}
-        <code>{'<Annotoo disabled={!isPreview} />'}</code>.
+        In Vite, dynamically import Annotoo inside <code>import.meta.env.DEV</code> and call
+        <code>mount()</code> once from the browser entry point. The production build removes
+        that branch and the widget import. Also enable the Vite plugin only when
+        <code>command === 'serve'</code>; otherwise it still embeds thread data in production HTML.
       </p>
+      <CodeBlock code={`if (import.meta.env.DEV) {
+  const { mount } = await import('@staplelab/annotoo');
+  const instance = mount({ mode: 'author' });
+  import.meta.hot?.dispose(() => instance.destroy());
+}`} />
+      <CodeBlock label="vite.config.ts" code={`export default defineConfig(({ command }) => ({
+  plugins: [
+    // Keep your existing framework plugins here.
+    ...(command === 'serve' ? [annotoo()] : []),
+  ],
+}));`} />
     </article>
   );
 }

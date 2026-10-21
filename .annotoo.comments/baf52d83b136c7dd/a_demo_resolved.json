@@ -18,16 +18,16 @@
     "route": "/",
     "createdAt": 1792562400000,
     "author": {
-      "id": "demo:designer",
-      "name": "Demo designer"
+      "id": "demo:jane-doe",
+      "name": "Jane Doe"
     },
     "replies": [
       {
         "id": "demo_resolved_reply",
         "body": "Verified the chart label. Ready to resolve.",
         "author": {
-          "id": "demo:engineer",
-          "name": "Demo engineer"
+          "id": "demo:sam-lee",
+          "name": "Sam Lee"
         },
         "createdAt": 1792562580000
       }
@@ -35,19 +35,36 @@
     "status": "resolved",
     "resolvedAt": 1792562640000,
     "resolvedBy": {
-      "id": "demo:designer",
-      "name": "Demo designer"
+      "id": "demo:jane-doe",
+      "name": "Jane Doe"
     },
     "events": [
+      {
+        "id": "a_demo_resolved_assigned",
+        "type": "assigned",
+        "author": {
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
+        },
+        "assignee": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "createdAt": 1792562550000
+      },
       {
         "id": "demo_resolved_event",
         "type": "resolved",
         "author": {
-          "id": "demo:designer",
-          "name": "Demo designer"
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
         },
         "createdAt": 1792562640000
       }
-    ]
+    ],
+    "assignee": {
+      "id": "demo:alex-rivera",
+      "name": "Alex Rivera"
+    }
   }
 }

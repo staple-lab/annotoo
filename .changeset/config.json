@@ -2,9 +2,17 @@
   "$schema": "https://unpkg.com/@changesets/config@3.0.5/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [["@staplelab/annotoo", "@staplelab/annotoo-react", "@staplelab/vite-plugin-annotoo"]],
+  "fixed": [
+    [
+      "@staplelab/annotoo",
+      "@staplelab/vite-plugin-annotoo"
+    ]
+  ],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["example-vite-react", "example-static"]
+  "ignore": [
+    "example-vite-react",
+    "example-static"
+  ]
 }

@@ -103,6 +103,13 @@ test.describe('dev server: author mode', () => {
     await expect(ui(page).locator('.thread')).toContainText('A draft that survives synchronization.');
     await expect(ui(page).locator('.thread .reply')).toHaveCount(2);
     await expect(ui(page).locator('.thread')).toContainText('Annotoo test author');
+    await reply(other).fill('Keep this draft while ownership changes.');
+    await ui(page).getByRole('button', { name: 'Assign to me' }).click();
+    await expect(ui(other).locator('.thread .owner-label')).toHaveText('Assignee · Annotoo test author');
+    await expect(reply(other)).toHaveValue('Keep this draft while ownership changes.');
+    await ui(other).getByRole('button', { name: 'Unassign thread' }).click();
+    await expect(ui(page).locator('.thread .owner-label')).toHaveText('Assignee · Unassigned');
+    await expect(ui(page).locator('.thread-history')).toContainText('unassigned this thread');
     await ui(page).getByRole('button', { name: 'Resolve thread' }).click();
     await expect(ui(page).getByRole('button', { name: 'Reopen thread' })).toBeVisible();
     await expect(markers(page)).toHaveCount(baseline);
@@ -121,9 +128,11 @@ test.describe('production build hosted under a sub-path: viewer mode', () => {
   test('committed replies and resolved discussions ship in the read-only build', async ({ page }) => {
     await page.goto(PROD);
     await ui(page).getByRole('button', { name: 'Open thread 1', exact: true }).click();
-    await expect(ui(page).locator('.thread')).toContainText('Demo designer');
-    await expect(ui(page).locator('.thread')).toContainText('Demo engineer');
+    await expect(ui(page).locator('.thread')).toContainText('Jane Doe');
+    await expect(ui(page).locator('.thread')).toContainText('Sam Lee');
     await expect(ui(page).locator('.thread .reply')).toHaveCount(2);
+    await expect(ui(page).locator('.thread .owner-label')).toHaveText('Assignee · Sam Lee');
+    await expect(ui(page).getByRole('combobox', { name: 'Assign thread to' })).toHaveCount(0);
     await expect(ui(page).getByRole('button', { name: 'Resolve thread' })).toHaveCount(0);
     await ui(page).getByRole('button', { name: 'Close thread' }).click();
     await openToolbar(page);

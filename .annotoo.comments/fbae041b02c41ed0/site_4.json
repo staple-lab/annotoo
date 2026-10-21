@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "project": "site",
+  "thread": {
+    "id": "site_4",
+    "n": 4,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"demo-agents\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "GET /api/registry, newest first. Tags are the agent's connected tools; we show three and collapse the rest.",
+    "category": "development",
+    "createdAt": 1791882240000,
+    "route": "/",
+    "title": "Data",
+    "author": {
+      "id": "demo:jane-doe",
+      "name": "Jane Doe"
+    },
+    "replies": [
+      {
+        "id": "site_4_sample_reply",
+        "body": "I will check this in the next review. Keeping the context here makes the follow-up easy to find.",
+        "author": {
+          "id": "demo:sam-lee",
+          "name": "Sam Lee"
+        },
+        "createdAt": 1792562460000
+      }
+    ]
+  }
+}

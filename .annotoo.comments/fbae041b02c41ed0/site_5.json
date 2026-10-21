@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "project": "site",
+  "thread": {
+    "id": "site_5",
+    "n": 5,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"try-it\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Annotations you add here are saved in your browser only. \"Reset my annotations\" brings back the originals.",
+    "category": "interaction",
+    "createdAt": 1791882300000,
+    "route": "/",
+    "author": {
+      "id": "demo:sam-lee",
+      "name": "Sam Lee"
+    },
+    "assignee": {
+      "id": "demo:alex-rivera",
+      "name": "Alex Rivera"
+    },
+    "replies": [
+      {
+        "id": "site_5_sample_reply",
+        "body": "I will check this in the next review. Keeping the context here makes the follow-up easy to find.",
+        "author": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "createdAt": 1792562460000
+      }
+    ],
+    "events": [
+      {
+        "id": "site_5_assigned",
+        "type": "assigned",
+        "author": {
+          "id": "demo:sam-lee",
+          "name": "Sam Lee"
+        },
+        "assignee": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "createdAt": 1792562550000
+      }
+    ]
+  }
+}

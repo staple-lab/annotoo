@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "project": "examples/vite-react",
+  "thread": {
+    "id": "a_seed_5",
+    "n": 5,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"agent-list\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "GET /api/registry. The status dot comes from the last heartbeat: active means one in the last 5 minutes.",
+    "category": "development",
+    "createdAt": 1791885000000,
+    "route": "/agents",
+    "title": "Data",
+    "author": {
+      "id": "demo:sam-lee",
+      "name": "Sam Lee"
+    },
+    "assignee": {
+      "id": "demo:alex-rivera",
+      "name": "Alex Rivera"
+    },
+    "replies": [
+      {
+        "id": "a_seed_5_sample_reply",
+        "body": "I will check this in the next review. Keeping the context here makes the follow-up easy to find.",
+        "author": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "createdAt": 1792562460000
+      }
+    ],
+    "events": [
+      {
+        "id": "a_seed_5_assigned",
+        "type": "assigned",
+        "author": {
+          "id": "demo:sam-lee",
+          "name": "Sam Lee"
+        },
+        "assignee": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "createdAt": 1792562550000
+      }
+    ]
+  }
+}

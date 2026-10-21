@@ -32,12 +32,14 @@ export type AnnotationReply = {
   createdAt: number;
 };
 
-/** Append-only record of a thread being resolved or reopened. */
+/** Append-only record of thread ownership and resolution changes. */
 export type ThreadEvent = {
   id: string;
-  type: 'resolved' | 'reopened';
+  type: 'resolved' | 'reopened' | 'assigned' | 'unassigned';
   author: CommentAuthor;
   createdAt: number;
+  /** The new owner for an assigned event. */
+  assignee?: CommentAuthor;
 };
 
 export type Annotation = {
@@ -61,6 +63,8 @@ export type Annotation = {
   author?: CommentAuthor;
   updatedBy?: CommentAuthor;
   replies?: AnnotationReply[];
+  /** Current owner; absence means unassigned. Ownership never changes authorship. */
+  assignee?: CommentAuthor;
   /** Missing status means open, for compatibility with existing annotation files. */
   status?: 'open' | 'resolved';
   resolvedAt?: number;

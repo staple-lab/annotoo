@@ -30,6 +30,7 @@ type Annotation = {
   updatedAt?: number;
   author?: CommentAuthor;
   updatedBy?: CommentAuthor;
+  assignee?: CommentAuthor; // omitted = unassigned
   replies?: {
     id: string;
     body: string;
@@ -41,7 +42,8 @@ type Annotation = {
   resolvedBy?: CommentAuthor;
   events?: {
     id: string;
-    type: 'resolved' | 'reopened';
+    type: 'resolved' | 'reopened' | 'assigned' | 'unassigned';
+    assignee?: CommentAuthor; // target of an assignment event
     author: CommentAuthor;
     createdAt: number;
   }[];
@@ -89,20 +91,20 @@ type Annotation = {
     "body": "Should this open a draft?",
     "route": "/invoices",
     "createdAt": 1791800000000,
-    "author": { "id": "opaque-author-id", "name": "Alex" },
+    "author": { "id": "opaque-author-id", "name": "Alex Rivera" },
     "replies": [{
       "id": "r_review_1",
       "body": "Yes, the next prototype will include it.",
-      "author": { "id": "another-author-id", "name": "Sam" },
+      "author": { "id": "another-author-id", "name": "Sam Lee" },
       "createdAt": 1791800100000
     }],
     "status": "resolved",
     "resolvedAt": 1791800200000,
-    "resolvedBy": { "id": "opaque-author-id", "name": "Alex" },
+    "resolvedBy": { "id": "opaque-author-id", "name": "Alex Rivera" },
     "events": [{
       "id": "e_review_1",
       "type": "resolved",
-      "author": { "id": "opaque-author-id", "name": "Alex" },
+      "author": { "id": "opaque-author-id", "name": "Alex Rivera" },
       "createdAt": 1791800200000
     }]
   }

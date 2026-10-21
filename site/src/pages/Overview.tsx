@@ -22,15 +22,16 @@ export function Overview() {
       <CodeBlock
         id="install-snippet"
         code={{
-          npm: 'npm install @staplelab/annotoo-react\nnpm install -D @staplelab/vite-plugin-annotoo',
-          pnpm: 'pnpm add @staplelab/annotoo-react\npnpm add -D @staplelab/vite-plugin-annotoo',
-          yarn: 'yarn add @staplelab/annotoo-react\nyarn add -D @staplelab/vite-plugin-annotoo',
+          npm: 'npm install @staplelab/annotoo\nnpm install -D @staplelab/vite-plugin-annotoo',
+          pnpm: 'pnpm add @staplelab/annotoo\npnpm add -D @staplelab/vite-plugin-annotoo',
+          yarn: 'yarn add @staplelab/annotoo\nyarn add -D @staplelab/vite-plugin-annotoo',
         }}
       />
 
       <Demo />
       <p><a className="button" href={demoHref}>Open the full prototype demo</a></p>
 
+      <figure><img src={`${import.meta.env.BASE_URL}screenshots/threads.jpg`} alt="Jane Doe and Sam Lee discussing a prototype in an Annotoo thread" loading="lazy" style={{ width: '100%', borderRadius: 12 }} /></figure>
       <h2>How it works</h2>
       <ol className="steps">
         <li>
@@ -47,7 +48,7 @@ export function Overview() {
           <code>.annotoo.comments/</code> in your Git repo, with your Git display name.
         </li>
         <li>
-          <strong>Keep the discussion together.</strong> Open a thread to reply, resolve or reopen.
+          <strong>Keep the discussion together.</strong> Open a thread to reply, assign, unassign, resolve or reopen.
           Commit, pull and push the thread files with your normal Git workflow.
         </li>
         <li>
@@ -74,8 +75,7 @@ export function Overview() {
         <p>
           This documentation page is a personal sandbox: notes you add here stay in your browser.
           Nobody else sees them, and they never update Git. The full prototype demo is a read-only
-          review copy with the published discussions. Names such as Demo designer and Demo
-          engineer are illustrative identities in the sample threads.
+          review copy with the published discussions. Jane Doe, Sam Lee and Alex Rivera are fictional people in the sample threads.
         </p>
         <div className="try-actions">
           <a className="button" href={viewerHref}>

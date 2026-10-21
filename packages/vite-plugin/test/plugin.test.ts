@@ -2,13 +2,14 @@ import { execFileSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, realpathSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { build, createServer, transformWithEsbuild, type ViteDevServer } from 'vite';
 import annotoo from '../src/index';
 import { projectDirectory, type Thread } from '../src/storage';
 
-type Payload = { annotoo: 1; file: string; commentsDir: string; project: string; annotations: Thread[]; revision: string; identity: { id: string; name: string } | null; identityError?: string; error?: string };
+type Payload = { annotoo: 1; file: string; commentsDir: string; project: string; annotations: Thread[]; collaborators: { id: string; name: string }[]; revision: string; identity: { id: string; name: string } | null; identityError?: string; error?: string };
 type JsonResponse = Omit<Awaited<ReturnType<typeof fetch>>, 'json'> & { json(): Promise<Payload> };
 const fetchJson = (...args: Parameters<typeof fetch>): Promise<JsonResponse> => fetch(...args) as Promise<JsonResponse>;
 let server: ViteDevServer;
@@ -48,6 +49,69 @@ describe('Git-backed collaborative comments', () => {
     expect(res.headers.get('etag')).toBe(payload.revision);
     expect(JSON.stringify(payload)).not.toContain('ADA@Example.com');
     expect(JSON.stringify(payload)).not.toContain('ada@example.com');
+  });
+
+  test('discovers deduplicated Git authors and stored collaborators without exposing emails', async () => {
+    git('add', 'index.html');
+    git('commit', '-qm', 'Initial review');
+    git('config', 'user.name', 'Grace Hopper');
+    git('config', 'user.email', 'grace@example.com');
+    const grace = (await get()).identity!;
+    const saved: Payload = await (await put([annotation()], (await get()).revision)).json();
+    git('config', 'user.name', 'Local Reviewer');
+    git('config', 'user.email', 'local@example.com');
+    const payload = await get();
+    expect(payload.collaborators.map(person => person.name).sort()).toEqual(['Ada Lovelace', 'Grace Hopper', 'Local Reviewer']);
+    expect(payload.collaborators).toContainEqual(grace);
+    expect(saved.collaborators).toContainEqual(grace);
+    expect(JSON.stringify(payload)).not.toMatch(/ada@example|grace@example|local@example/i);
+    git('config', 'user.email', 'ADA@example.com');
+    expect((await get()).collaborators.filter(person => person.id === payload.collaborators.find(person => person.name === 'Ada Lovelace')!.id)).toHaveLength(1);
+  });
+
+  test('persists canonical assignment, reassignment and unassignment with authoritative audit', async () => {
+    const start = await get();
+    const ada = start.identity!;
+    let payload: Payload = await (await put([{ ...annotation(), assignee: { id: ada.id, name: 'Forged name' }, events: [{ id: 'spoof', type: 'assigned', createdAt: 1 }] }], start.revision)).json();
+    const original = payload.annotations[0];
+    expect(original.assignee).toEqual(ada);
+    expect(original.events).toEqual([{ id: expect.any(String), type: 'assigned', author: ada, assignee: ada, createdAt: original.createdAt }]);
+    expect(original.events![0].id).not.toBe('spoof');
+    git('config', 'user.name', 'Grace Hopper');
+    git('config', 'user.email', 'grace@example.com');
+    const grace = (await get()).identity!;
+    payload = await (await put([{ ...original, assignee: { id: grace.id, name: 'Spoofed' }, author: grace, events: [] }], payload.revision)).json();
+    expect(payload.annotations[0]).toMatchObject({ author: ada, assignee: grace, updatedBy: grace });
+    expect(payload.annotations[0].events?.map(event => event.type)).toEqual(['assigned', 'assigned']);
+    expect(payload.annotations[0].events![1]).toMatchObject({ author: grace, assignee: grace });
+    expect((await get()).annotations).toEqual(payload.annotations);
+    expect(record('a1').thread.assignee).toEqual(grace);
+    const unchanged = await (await put([{ ...payload.annotations[0], assignee: { id: grace.id, name: 'Still fake' }, events: [] }], payload.revision)).json();
+    expect(unchanged.revision).toBe(payload.revision);
+    payload = await (await put([{ ...payload.annotations[0], assignee: null }], payload.revision)).json();
+    expect(payload.annotations[0].assignee).toBeUndefined();
+    expect(payload.annotations[0].author).toEqual(ada);
+    expect(payload.annotations[0].events![2]).toMatchObject({ type: 'unassigned', author: grace, assignee: grace });
+    expect(record('a1').thread).toEqual(payload.annotations[0]);
+  });
+
+  test('rejects unknown assignees atomically and prevents stale assignment overwrites', async () => {
+    let payload: Payload = await (await put([annotation()], (await get()).revision)).json();
+    const before = readFileSync(recordPath('a1'), 'utf8');
+    const invalid = await put([{ ...payload.annotations[0], body: 'Changed', assignee: { id: 'unknown', name: 'Unknown' } }], payload.revision);
+    expect(invalid.status).toBe(400);
+    expect((await invalid.json()).error).toContain('Unknown collaborator');
+    expect(readFileSync(recordPath('a1'), 'utf8')).toBe(before);
+    const responses = await Promise.all([
+      put([{ ...payload.annotations[0], assignee: payload.identity }], payload.revision),
+      put([{ ...payload.annotations[0], status: 'resolved' }], payload.revision),
+    ]);
+    expect(responses.map(response => response.status).sort()).toEqual([200, 409]);
+    const stale = payload;
+    payload = await get();
+    expect((await put([{ ...stale.annotations[0], assignee: stale.identity }], stale.revision)).status).toBe(409);
+    expect((await get()).annotations).toEqual(payload.annotations);
+    expect(payload.annotations[0].events).toHaveLength(1);
   });
 
   test('stamps new threads server-side and writes one versioned file without rewriting legacy JSON', async () => {
@@ -220,6 +284,55 @@ describe('Git-backed collaborative comments', () => {
     expect(html).not.toContain('__ANNOTOO_DEV__');
   });
 
+  test('documented dev-only recipe excludes comments and SDK from production while retaining development review', async () => {
+    const sentinel = 'PRIVATE_REVIEW_SENTINEL_5a8d';
+    await put([{ ...annotation(), body: sentinel }], (await get()).revision);
+    const pluginPath = fileURLToPath(new URL('../src/index.ts', import.meta.url));
+    // Resolve the real SDK source, so this test also runs on a fresh checkout before a package build.
+    const sdkPath = fileURLToPath(new URL('../../core/src/index.ts', import.meta.url));
+    const configFile = join(dir, 'vite.config.mts');
+    writeFileSync(configFile, `
+      import annotoo from ${JSON.stringify(pluginPath)};
+      export default ({ command }) => ({
+        plugins: command === 'serve' ? [annotoo()] : [],
+      });
+    `);
+    writeFileSync(join(dir, 'index.html'), '<!doctype html><title>App</title><script type="module" src="/src/main.ts"></script>');
+    writeFileSync(join(dir, 'src/main.ts'), `
+      document.body.dataset.app = 'production-app-ready';
+      if (import.meta.env.DEV) {
+        import(${JSON.stringify(sdkPath)}).then(({ mount }) => mount());
+      }
+    `);
+    // Vitest sets NODE_ENV=test; reproduce the environment of a real production build.
+    vi.stubEnv('NODE_ENV', 'production');
+    let result;
+    try {
+      result = await build({ root: dir, configFile, logLevel: 'silent', build: { write: false } });
+    } finally { vi.unstubAllEnvs(); }
+    const output = (Array.isArray(result) ? result[0] : result) as { output: { fileName: string; code?: string; source?: string | Uint8Array; modules?: Record<string, unknown> }[] };
+    const emitted = output.output.map((entry) => entry.code ?? String(entry.source ?? '')).join('\n');
+    expect(emitted).toContain('production-app-ready');
+    expect(emitted).not.toContain('__ANNOTOO_COMMENTS__');
+    expect(emitted).not.toContain('__ANNOTOO_DEV__');
+    expect(emitted).not.toContain(sentinel);
+    expect(emitted).not.toContain('annotoo-root');
+    expect(output.output.flatMap((entry) => Object.keys(entry.modules ?? {})).some((id) => id.includes('/packages/core/'))).toBe(false);
+    expect(output.output.filter((entry) => entry.fileName.endsWith('.js'))).toHaveLength(1);
+
+    await server.close();
+    server = await createServer({ root: dir, configFile, logLevel: 'silent', server: { port: 0, host: '127.0.0.1' } });
+    await server.listen();
+    const address = server.httpServer!.address() as { port: number };
+    base = `http://127.0.0.1:${address.port}`;
+    expect((await (await fetch(`${base}/`)).text())).toContain('__ANNOTOO_DEV__');
+    expect((await get()).annotations[0].body).toBe(sentinel);
+    const source = await server.transformRequest('/src/main.ts');
+    expect(source?.code).toContain('"DEV": true');
+    expect(source?.code).toContain('mount');
+    expect(source?.code).toContain('/packages/core/src/index.ts');
+  });
+
   test('production snapshots safely escape script-closing content and embed no runtime endpoint', async () => {
     const malicious = { ...annotation(), body: '</script><script>alert(1)</script>' };
     await put([malicious], (await get()).revision);
@@ -229,6 +342,7 @@ describe('Git-backed collaborative comments', () => {
     expect(html).toContain('\\u003c/script>\\u003cscript>alert(1)\\u003c/script>');
     expect(html).not.toContain('</script><script>alert');
     expect(html).not.toContain('/__annotoo/annotations');
+    expect(html).not.toContain('collaborators');
     expect(html).not.toContain('ada@example.com');
   });
 

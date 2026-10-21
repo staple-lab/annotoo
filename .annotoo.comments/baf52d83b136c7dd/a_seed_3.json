@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "project": "examples/vite-react",
+  "thread": {
+    "id": "a_seed_3",
+    "n": 3,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"spend-chart\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Shows that day's spend split by agent. Clicking a day should filter Runs; that page isn't built yet.",
+    "category": "interaction",
+    "createdAt": 1791883800000,
+    "route": "/",
+    "title": "Hover a day",
+    "author": {
+      "id": "demo:alex-rivera",
+      "name": "Alex Rivera"
+    },
+    "assignee": {
+      "id": "demo:jane-doe",
+      "name": "Jane Doe"
+    },
+    "replies": [
+      {
+        "id": "a_seed_3_sample_reply",
+        "body": "I will check this in the next review. Keeping the context here makes the follow-up easy to find.",
+        "author": {
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
+        },
+        "createdAt": 1792562460000
+      }
+    ],
+    "events": [
+      {
+        "id": "a_seed_3_assigned",
+        "type": "assigned",
+        "author": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "assignee": {
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
+        },
+        "createdAt": 1792562550000
+      }
+    ]
+  }
+}

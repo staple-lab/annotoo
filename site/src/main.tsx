@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import './styles.css';
+import { mountSiteAnnotoo } from './annotoo';
 
 // First visit: open the Annotoo toolbar so people can see what it is straight away.
 try {
@@ -15,3 +16,7 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 );
+
+// One framework-agnostic instance, outside component lifecycles.
+const annotoo = mountSiteAnnotoo();
+import.meta.hot?.dispose(() => annotoo.destroy());

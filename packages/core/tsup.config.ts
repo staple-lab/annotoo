@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig([
-  // npm entry: explicit mount() API, consumed by bundlers and @staplelab/annotoo-react.
+  // npm entry: explicit mount() API, consumed by every framework and plain JavaScript.
   {
     entry: { index: 'src/index.ts' },
     format: ['esm'],

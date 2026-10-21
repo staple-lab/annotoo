@@ -18,18 +18,37 @@
     "route": "/",
     "title": "This page is annotated",
     "author": {
-      "id": "demo:designer",
-      "name": "Demo designer"
+      "id": "demo:jane-doe",
+      "name": "Jane Doe"
     },
     "replies": [
       {
         "id": "site_demo_reply",
         "body": "Open this thread to try replies and resolution. This documentation sandbox saves only in your browser; the local Vite integration saves shared discussions in Git.",
         "author": {
-          "id": "demo:engineer",
-          "name": "Demo engineer"
+          "id": "demo:sam-lee",
+          "name": "Sam Lee"
         },
         "createdAt": 1792562400000
+      }
+    ],
+    "assignee": {
+      "id": "demo:sam-lee",
+      "name": "Sam Lee"
+    },
+    "events": [
+      {
+        "id": "site_1_assigned",
+        "type": "assigned",
+        "author": {
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
+        },
+        "assignee": {
+          "id": "demo:sam-lee",
+          "name": "Sam Lee"
+        },
+        "createdAt": 1792562550000
       }
     ]
   }

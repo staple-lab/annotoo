@@ -27,12 +27,16 @@ export function annotationsToMarkdown(annotations: Annotation[], title = documen
       lines.push('', meta.join(' · '));
       if (a.body.trim()) lines.push('', a.body.trim());
       if (a.author) lines.push('', `By ${a.author.name} · ${new Date(a.createdAt).toISOString()}`);
+      if (a.assignee) lines.push('', `Assigned to ${a.assignee.name}`);
       if (a.updatedBy && a.updatedAt) lines.push('', `Edited by ${a.updatedBy.name} · ${new Date(a.updatedAt).toISOString()}`);
       for (const reply of a.replies ?? []) {
         lines.push('', `**${reply.author.name}** · ${new Date(reply.createdAt).toISOString()}`, '', reply.body.trim());
       }
       for (const event of a.events ?? []) {
-        lines.push('', `${event.type === 'resolved' ? 'Resolved' : 'Reopened'} by ${event.author.name} · ${new Date(event.createdAt).toISOString()}`);
+        const action = event.type === 'assigned' ? `Assigned to ${event.assignee?.name ?? 'a teammate'}`
+          : event.type === 'unassigned' ? 'Unassigned'
+          : event.type === 'resolved' ? 'Resolved' : 'Reopened';
+        lines.push('', `${action} by ${event.author.name} · ${new Date(event.createdAt).toISOString()}`);
       }
       if (a.status === 'resolved') {
         lines.push('', `**Resolved**${a.resolvedBy ? ` by ${a.resolvedBy.name}` : ''}`);

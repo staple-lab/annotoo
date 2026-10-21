@@ -1,6 +1,5 @@
 ---
 "@staplelab/annotoo": minor
-"@staplelab/annotoo-react": minor
 "@staplelab/vite-plugin-annotoo": minor
 ---
 

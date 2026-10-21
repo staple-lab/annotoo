@@ -10,6 +10,8 @@ export interface AnnotationStorage {
   /** Git identity, or null when Git-backed writing needs configuration. Undefined for other adapters. */
   readonly identity?: CommentAuthor | null;
   readonly identityError?: string;
+  /** People known to the repository, available for assigning threads. */
+  readonly collaborators?: CommentAuthor[];
   /** Subscribe to changes from other clients. The returned function stops synchronization. */
   subscribe?(listener: (annotations: Annotation[]) => void): () => void;
   /** Human-readable note shown in the panel footer, e.g. "Saved to src/annotoo.annotations.json". */
@@ -63,6 +65,7 @@ export type DevServerPayload = {
   annotations: Annotation[];
   identity?: CommentAuthor | null;
   identityError?: string;
+  collaborators?: CommentAuthor[];
   /** Opaque revision sent back unchanged in If-Match when saving. */
   revision?: string;
   commentsDir?: string;
@@ -168,6 +171,7 @@ export function devServerStorage(
   return {
     get identity() { return current?.identity; },
     get identityError() { return current?.identityError; },
+    get collaborators() { return current?.collaborators; },
     async load() {
       const payload = await load();
       accept(payload, false);

@@ -14,7 +14,6 @@ const options: [string, string, string][] = [
   ['shortcuts', 'true', '⌥A / Alt+A annotate, ⌥H / Alt+H show or hide. false turns them off; Esc always works.'],
   ['actions', '[]', 'Extra author toolbar buttons: { label, icon, run(annotations) }.'],
   ['onChange', 'none', 'Called with the full list after every author change.'],
-  ['disabled', 'false', "React only. Don't mount."],
 ];
 
 export function Api() {
@@ -22,7 +21,7 @@ export function Api() {
     <article className="prose">
       <h1>API</h1>
       <p className="lede">
-        The React component and the framework-free <code>mount()</code> take the same options.
+        Call <code>mount()</code> once from your browser bootstrap in any framework.
       </p>
 
       <h2>Options</h2>
@@ -43,7 +42,7 @@ export function Api() {
         </table>
       </div>
 
-      <h2>Without React</h2>
+      <h2>Initialize once</h2>
       <CodeBlock
         label="main.ts"
         code={`import { mount } from '@staplelab/annotoo';
@@ -63,14 +62,14 @@ annotoo.destroy();   // remove Annotoo from the page`}
       <h2>Custom storage</h2>
       <p>To save author changes somewhere other than your repo, pass an object with two methods:</p>
       <CodeBlock
-        code={`<Annotoo
-  mode="author"
-  storage={{
+        code={`mount({
+  mode: 'author',
+  storage: {
     load: () => fetch('/api/annotations').then((r) => r.json()),
     save: (annotations) =>
       fetch('/api/annotations', { method: 'PUT', body: JSON.stringify(annotations) }),
-  }}
-/>`}
+  },
+});`}
       />
       <p>
         <code>memoryStorage</code>, <code>localStorageStorage</code> and{' '}
@@ -88,7 +87,7 @@ annotoo.destroy();   // remove Annotoo from the page`}
         code={`annotoo({
   file: 'src/annotoo.annotations.json', // relative to the Vite root
   commentsDir: '.annotoo.comments',    // relative to the Git root, else Vite root
-  endpoint: '/__annotoo/annotations',   // must match the component's endpoint
+  endpoint: '/__annotoo/annotations',   // must match the widget's endpoint
 });`}
       />
       <p>

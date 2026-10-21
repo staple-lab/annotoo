@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "project": "site",
+  "thread": {
+    "id": "site_3",
+    "n": 3,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"demo-status\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Active means a heartbeat in the last 5 minutes. Beta agents are visible to their team only.",
+    "category": "content",
+    "createdAt": 1791882180000,
+    "route": "/",
+    "title": "Status filter",
+    "author": {
+      "id": "demo:alex-rivera",
+      "name": "Alex Rivera"
+    },
+    "assignee": {
+      "id": "demo:jane-doe",
+      "name": "Jane Doe"
+    },
+    "replies": [
+      {
+        "id": "site_3_sample_reply",
+        "body": "I will check this in the next review. Keeping the context here makes the follow-up easy to find.",
+        "author": {
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
+        },
+        "createdAt": 1792562460000
+      }
+    ],
+    "events": [
+      {
+        "id": "site_3_assigned",
+        "type": "assigned",
+        "author": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "assignee": {
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
+        },
+        "createdAt": 1792562550000
+      }
+    ]
+  }
+}

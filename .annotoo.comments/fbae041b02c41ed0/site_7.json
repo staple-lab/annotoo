@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "project": "site",
+  "thread": {
+    "id": "site_7",
+    "n": 7,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"features-display\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Open Settings in the toolbar and switch between Always, On hover and Numbers only to see the difference on this page.",
+    "category": "content",
+    "createdAt": 1791882420000,
+    "route": "/features",
+    "title": "Try each mode",
+    "author": {
+      "id": "demo:jane-doe",
+      "name": "Jane Doe"
+    },
+    "assignee": {
+      "id": "demo:sam-lee",
+      "name": "Sam Lee"
+    },
+    "replies": [
+      {
+        "id": "site_7_sample_reply",
+        "body": "I will check this in the next review. Keeping the context here makes the follow-up easy to find.",
+        "author": {
+          "id": "demo:sam-lee",
+          "name": "Sam Lee"
+        },
+        "createdAt": 1792562460000
+      }
+    ],
+    "events": [
+      {
+        "id": "site_7_assigned",
+        "type": "assigned",
+        "author": {
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
+        },
+        "assignee": {
+          "id": "demo:sam-lee",
+          "name": "Sam Lee"
+        },
+        "createdAt": 1792562550000
+      }
+    ]
+  }
+}

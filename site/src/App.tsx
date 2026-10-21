@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link, usePath } from './router';
-import { SiteAnnotoo } from './annotoo';
 import { Overview } from './pages/Overview';
 import { Install } from './pages/Install';
 import { Features } from './pages/Features';
@@ -93,7 +92,6 @@ export function App() {
         </footer>
       </main>
 
-      <SiteAnnotoo />
     </div>
   );
 }

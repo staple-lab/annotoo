@@ -465,6 +465,12 @@ kbd { font-family: inherit; font-size: 10.5px; padding: 0 4px; border-radius: 4p
 .thread.top { top: 76px; bottom: 12px; }
 .thread .panel-head { flex: 0 0 auto; }
 .thread-context { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; padding: 10px 16px; border-bottom: 1px solid var(--n-line); font-size: 11px; color: var(--n-muted); }
+.thread-assignment { padding: 10px 16px; border-bottom: 1px solid var(--n-line); display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.owner-label, .note-owner, .item-owner { font-size: 11px; color: var(--n-muted); overflow-wrap: anywhere; }
+.note-owner, .item-owner { margin-top: 6px; }
+.thread-assignment select { width: 100%; min-width: 0; padding: 7px 9px; border: 1px solid var(--n-line); border-radius: 7px; background: var(--n-surface); color: var(--n-ink); font: inherit; font-size: 12px; }
+.assignment-actions { display: flex; gap: 6px; }
+.thread-assignment select:focus-visible { outline: 2px solid var(--n-ink); outline-offset: 2px; }
 .thread-context .route { overflow-wrap: anywhere; }
 .page-link { color: var(--n-accent); margin-left: auto; text-decoration: none; }
 .unanchored-label { color: var(--n-cat-content); }

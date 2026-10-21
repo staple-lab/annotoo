@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "project": "site",
+  "thread": {
+    "id": "site_6",
+    "n": 6,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"install-react\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "These lines are the whole integration. In vite dev you get the authoring tools; the production build is read-only.",
+    "category": "development",
+    "createdAt": 1791882360000,
+    "route": "/install",
+    "author": {
+      "id": "demo:alex-rivera",
+      "name": "Alex Rivera"
+    },
+    "replies": [
+      {
+        "id": "site_6_sample_reply",
+        "body": "I will check this in the next review. Keeping the context here makes the follow-up easy to find.",
+        "author": {
+          "id": "demo:jane-doe",
+          "name": "Jane Doe"
+        },
+        "createdAt": 1792562460000
+      }
+    ]
+  }
+}

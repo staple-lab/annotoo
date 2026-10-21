@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "project": "site",
+  "thread": {
+    "id": "site_2",
+    "n": 2,
+    "anchor": {
+      "selector": "[data-annotoo-id=\"demo-new\"]",
+      "textSnippet": "",
+      "offset": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "body": "Pick a provider, paste credentials, test the connection. In this prototype only the first step exists: worth saying before someone clicks it in a review.",
+    "category": "interaction",
+    "createdAt": 1791882120000,
+    "route": "/",
+    "title": "Opens Add agent",
+    "author": {
+      "id": "demo:sam-lee",
+      "name": "Sam Lee"
+    },
+    "replies": [
+      {
+        "id": "site_2_sample_reply",
+        "body": "I will check this in the next review. Keeping the context here makes the follow-up easy to find.",
+        "author": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "createdAt": 1792562460000
+      }
+    ],
+    "events": [
+      {
+        "id": "site_2_assigned",
+        "type": "assigned",
+        "author": {
+          "id": "demo:sam-lee",
+          "name": "Sam Lee"
+        },
+        "assignee": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "createdAt": 1792562500000
+      },
+      {
+        "id": "site_2_unassigned",
+        "type": "unassigned",
+        "author": {
+          "id": "demo:alex-rivera",
+          "name": "Alex Rivera"
+        },
+        "createdAt": 1792562550000
+      }
+    ]
+  }
+}
