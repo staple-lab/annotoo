@@ -59,5 +59,17 @@ Guidelines:
 
 ## Releasing
 
-Releases are cut from `main` with [changesets](https://github.com/changesets/changesets).
-The framework-agnostic package and optional Vite plugin are versioned together.
+Add a changeset for user-facing changes. Run `pnpm changeset version` to update the
+framework-agnostic package and optional Vite plugin together. Open a pull request;
+`main` requires passing CI and resolved review conversations, including for admins.
+A second reviewer's approval is optional.
+
+Run `pnpm release:pack` before opening the release PR and commit the generated
+`site/public/releases/<version>/annotoo.js` archive. Keep previous archives so existing
+script URLs continue to work. An existing version cannot be overwritten with a different build.
+
+After merging, tag the tested commit with the package version, such as `v0.2.0`, and
+push the tag. The Release workflow builds installable packages, includes licenses and
+checksums, and publishes a GitHub release. `pnpm release:pack` produces the same files
+locally in `release-dist/`. Update `docs/release-notes.md` and the versioned installation
+URLs with each release. npm registry publication is a separate authenticated operation.

@@ -10,3 +10,4 @@ pages-dist
 **/.annotoo-write-*/
 **/.annotoo-abandoned-*/
 examples/static/public/notate.js
+release-dist

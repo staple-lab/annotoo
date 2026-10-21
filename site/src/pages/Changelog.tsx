@@ -3,28 +3,15 @@ export function Changelog() {
     <article className="prose">
       <h1>Changelog</h1>
       <section className="release">
-        <h2>Unreleased</h2>
-        <p>Discuss prototypes through your existing Git workflow.</p>
+        <h2>0.2.0 <time dateTime="2026-10-21">21 October 2026</time></h2>
+        <p>First packaged release. <a href="https://github.com/staple-lab/annotoo/releases/tag/v0.2.0">Download the release</a>.</p>
         <ul>
-          <li>Attributed replies, resolve/reopen history and Open, Resolved and All list filters.</li>
-          <li>One versioned thread file per discussion in .annotoo.comments, separated by project in a monorepo.</li>
-          <li>Git display names and hashed author IDs, with no raw email published.</li>
-          <li>Development clients refresh from disk; separate clones exchange comments with Git pull, commit and push.</li>
-          <li>Existing annotation arrays stay supported, and builds embed discussions for read-only hosted viewers.</li>
-          <li>Markdown export includes authors, replies and resolution history.</li>
-        </ul>
-      </section>
-      <section className="release">
-        <h2>
-          0.1.0 <time dateTime="2026-10-13">13 October 2026</time>
-        </h2>
-        <p>First public release.</p>
-        <ul>
-          <li>Figma-style annotations: outline, numbered badge, connector and note, with five categories.</li>
-          <li>Floating toolbar with Annotate, show and hide, list, settings and copy.</li>
-          <li>Viewer settings for display mode, outlines, theme and toolbar position.</li>
-          <li>Framework-free mount API, optional Vite plugin that saves to your repo, and a script-tag build with self-contained HTML export.</li>
-          <li>Route-aware annotations that work when the build is hosted under a sub-path.</li>
+          <li>One framework-free package: call <code>mount()</code> once from your browser entry point.</li>
+          <li>Element annotations with numbered badges, connectors and five categories; route and sub-path support.</li>
+          <li>Attributed replies, assignment, unassignment, resolve/reopen history and thread filters.</li>
+          <li>Optional Vite plugin: one Git-backed file per thread, with display names and hashed author IDs.</li>
+          <li>Collaboration through normal Git pull, commit and push; read-only discussion snapshots for hosted prototypes.</li>
+          <li>Floating toolbar, display settings, Markdown export and a script-tag build with self-contained HTML export.</li>
         </ul>
       </section>
     </article>

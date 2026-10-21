@@ -1,10 +1,14 @@
 {
   "name": "@staplelab/annotoo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Figma-style annotations for code prototypes. Annotate your UI, ship the notes with your build, and anyone opening it sees them in place.",
   "license": "MIT",
   "type": "module",
-  "sideEffects": ["./dist/annotoo.js", "./src/self-src.ts", "./src/iife.ts"],
+  "sideEffects": [
+    "./dist/annotoo.js",
+    "./src/self-src.ts",
+    "./src/iife.ts"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,9 +22,23 @@
     "./annotoo.js": "./dist/annotoo.js",
     "./package.json": "./package.json"
   },
-  "files": ["dist"],
-  "keywords": ["annotations", "notes", "handoff", "prototype", "review", "figma", "widget"],
-  "repository": { "type": "git", "url": "git+https://github.com/staple-lab/annotoo.git", "directory": "packages/core" },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "annotations",
+    "notes",
+    "handoff",
+    "prototype",
+    "review",
+    "figma",
+    "widget"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/staple-lab/annotoo.git",
+    "directory": "packages/core"
+  },
   "scripts": {
     "build": "tsup && node scripts/inline-self.mjs",
     "typecheck": "tsc -p tsconfig.json",
