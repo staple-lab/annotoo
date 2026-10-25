@@ -3,7 +3,7 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path';
 
 // Static route entry points make direct links work on GitHub Pages without redirects.
-const base = (process.env.SITE_BASE ?? '/annotoo/').replace(/\/?$/, '/');
+const base = (process.env.SITE_BASE ?? '/').replace(/\/?$/, '/');
 if (!/^\/(?:[a-zA-Z0-9_-]+\/)*$/.test(base)) throw new Error('SITE_BASE must be an absolute URL path ending in /');
 const run = (args, env = {}) => execFileSync('pnpm', args, { stdio: 'inherit', env: { ...process.env, ...env } });
 run(['build']);

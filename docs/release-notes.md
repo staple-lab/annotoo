@@ -22,4 +22,4 @@ the file, but Annotoo no longer shows them or includes them in Markdown exports.
 Assets include one installable package, the standalone browser script, and SHA-256 checksums.
 This release is distributed through GitHub Releases.
 
-[Installation](https://staple-lab.github.io/annotoo/install) · [Live demo](https://staple-lab.github.io/annotoo/demo/)
+[Installation](https://annotoo.staplelab.com/install) · [Live demo](https://annotoo.staplelab.com/demo/)

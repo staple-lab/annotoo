@@ -6,9 +6,9 @@
 leave a note, and reply or resolve with your team. Threads travel with your code
 through Git; optionally publish a read-only review copy.
 
-[Live demo](https://staple-lab.github.io/annotoo/demo/) ·
-[Documentation](https://staple-lab.github.io/annotoo/) ·
-[API](https://staple-lab.github.io/annotoo/api)
+[Live demo](https://annotoo.staplelab.com/demo/) ·
+[Documentation](https://annotoo.staplelab.com/) ·
+[API](https://annotoo.staplelab.com/api)
 
 ![A discussion beside the prototype](docs/screenshots/threads.jpg)
 
@@ -99,7 +99,7 @@ other visitors' copies. The public demo uses fictional contributors.
 ## Plain HTML
 
 ```html
-<script src="https://staple-lab.github.io/annotoo/releases/v0.4.0/annotoo.js"></script>
+<script src="https://annotoo.staplelab.com/releases/v0.4.0/annotoo.js"></script>
 ```
 
 The script starts automatically and saves in your browser. **Export HTML** creates a
@@ -108,9 +108,9 @@ cannot edit.
 
 ## More
 
-- [API and custom storage](https://staple-lab.github.io/annotoo/api)
-- [Thread schema](https://staple-lab.github.io/annotoo/schema)
-- [Toolbar, shortcuts and display settings](https://staple-lab.github.io/annotoo/features)
+- [API and custom storage](https://annotoo.staplelab.com/api)
+- [Thread schema](https://annotoo.staplelab.com/schema)
+- [Toolbar, shortcuts and display settings](https://annotoo.staplelab.com/features)
 - [Contributing and local development](CONTRIBUTING.md)
 
 MIT © Staple Lab · Inspired by [agentation](https://www.agentation.com/).
