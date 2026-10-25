@@ -458,19 +458,24 @@ kbd { font-family: inherit; font-size: 10.5px; padding: 0 4px; border-radius: 4p
 /* ---------- collaborative discussions ----------------------------------------------- */
 .note-n, .note-date, .byline, .edited-line, .thread-event, .item-meta { overflow-wrap: anywhere; }
 .note-date { margin: 6px 0 0 22px; color: var(--n-muted); font-size: 11px; }
-.open-thread { margin: 10px 0 0 22px; padding: 0; border: 0; background: transparent; color: var(--n-accent); cursor: pointer; font-size: 12px; font-weight: 600; text-align: left; }
+.open-thread { display: inline-flex; align-items: center; gap: 5px; margin: 10px 0 0 22px; padding: 0; border: 0; background: transparent; color: var(--n-accent); cursor: pointer; font-size: 12px; font-weight: 600; text-align: left; }
 .open-thread:hover, .page-link:hover { text-decoration: underline; }
 .thread { position: fixed; top: 12px; bottom: 76px; right: 12px; width: 380px; max-width: calc(100vw - 24px); display: flex; flex-direction: column; overflow: hidden; animation: n-slide 180ms var(--n-ease) both; z-index: 6; }
 .thread.left { right: auto; left: 12px; }
 .thread.top { top: 76px; bottom: 12px; }
+/* In place of the note: styled as the active card, grown to hold the discussion. */
+.thread.in-card {
+  top: auto; bottom: auto; right: auto; width: 340px; max-height: min(560px, calc(100vh - 16px)); border-radius: 10px;
+  border-color: color-mix(in srgb, var(--cat) 55%, var(--n-line));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cat) 14%, transparent), 0 8px 24px rgba(0,0,0,0.1);
+  animation: n-pop 150ms var(--n-ease) both;
+}
+.thread.in-card .thread-history { max-height: 280px; }
 .thread .panel-head { flex: 0 0 auto; }
+.thread .panel-head .icon-btn:hover { background: transparent; }
 .thread-context { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; padding: 10px 16px; border-bottom: 1px solid var(--n-line); font-size: 11px; color: var(--n-muted); }
-.thread-assignment { padding: 10px 16px; border-bottom: 1px solid var(--n-line); display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
-.owner-label, .note-owner, .item-owner { font-size: 11px; color: var(--n-muted); overflow-wrap: anywhere; }
-.note-owner, .item-owner { margin-top: 6px; }
-.thread-assignment select { width: 100%; min-width: 0; padding: 7px 9px; border: 1px solid var(--n-line); border-radius: 7px; background: var(--n-surface); color: var(--n-ink); font: inherit; font-size: 12px; }
-.assignment-actions { display: flex; gap: 6px; }
-.thread-assignment select:focus-visible { outline: 2px solid var(--n-ink); outline-offset: 2px; }
+.thread-actions .btn { display: inline-flex; align-items: center; gap: 6px; }
+.note-owner { overflow-wrap: anywhere; }
 .thread-context .route { overflow-wrap: anywhere; }
 .page-link { color: var(--n-accent); margin-left: auto; text-decoration: none; }
 .unanchored-label { color: var(--n-cat-content); }
@@ -489,6 +494,11 @@ kbd { font-family: inherit; font-size: 10.5px; padding: 0 4px; border-radius: 4p
 .thread-composer textarea { display: block; width: 100%; min-height: 78px; max-height: 180px; padding: 10px; resize: vertical; border: 1px solid var(--n-line); border-radius: 8px; background: var(--n-surface); color: var(--n-ink); font-size: 13px; line-height: 1.45; }
 .reply-as { font-size: 11px; color: var(--n-muted); margin-bottom: 8px; overflow-wrap: anywhere; }
 .thread-actions { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+/* Flush with the reply box's left edge, so it carries no hover fill. */
+.thread-actions .status-action { padding: 0; }
+.thread-actions .status-action:hover { background: transparent; color: var(--n-ink); }
+.thread-actions .status-action.is-resolve { color: var(--n-cat-accessibility); }
+.thread-actions .status-action.is-resolve:hover { color: color-mix(in srgb, var(--n-cat-accessibility) 80%, var(--n-ink)); }
 .thread-actions .grow, .thread .grow { flex: 1; }
 .viewer-note { padding: 13px 16px; border-top: 1px solid var(--n-line); color: var(--n-muted); font-size: 11.5px; }
 .thread-status { display: inline-flex; align-items: center; gap: 4px; border-radius: 10px; padding: 2px 7px; font-size: 10px; line-height: 1.4; font-weight: 600; color: var(--n-accent); background: var(--n-accent-soft); white-space: nowrap; }

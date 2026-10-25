@@ -3,6 +3,16 @@ export function Changelog() {
     <article className="prose">
       <h1>Changelog</h1>
       <section className="release">
+        <h2>0.4.0 <time dateTime="2026-10-25">25 October 2026</time></h2>
+        <p>Discussions open where the note is. <a href="https://github.com/staple-lab/annotoo/releases/tag/v0.4.0">Download the release</a>.</p>
+        <ul>
+          <li>Threads open in place of their note's card, beside the element; notes without a card keep the side panel.</li>
+          <li>Notes show who created them. Assignment is removed; existing assignee data still loads.</li>
+          <li>A new reply scrolls into view; Resolve thread is green and aligned with the reply box.</li>
+          <li>Issue-style note cards with category, page and creator.</li>
+        </ul>
+      </section>
+      <section className="release">
         <h2>0.3.0 <time dateTime="2026-10-21">21 October 2026</time></h2>
         <p>One package and one config entry. <a href="https://github.com/staple-lab/annotoo/releases/tag/v0.3.0">Download the release</a>.</p>
         <ul>

@@ -296,9 +296,9 @@ export function createAnnotationLayer(
         onMouseleave: () => setHover(null),
       },
       // Issue-card layout: #n, then the title with its category glyph, the body, and a row of
-      // meta (category, page). Notes without a title lead with their body instead.
+      // meta (category, page, creator). Notes without a title lead with their body instead.
       [
-        el('div', { class: 'note-n' }, [`#${a.n} · ${a.author?.name || 'Unattributed'}`]),
+        el('div', { class: 'note-n' }, [`#${a.n}`]),
         el('div', { class: 'note-title' }, [
           el('span', { class: 'note-glyph' }, [icon(CATEGORY_ICON[cat], 15)]),
           el('span', {}, [a.title || a.body]),
@@ -309,12 +309,12 @@ export function createAnnotationLayer(
           el('span', {}, [icon('tag', 13), label]),
           // The page, unless it's the root (a bare "/" says nothing).
           a.route && a.route !== '/' ? el('span', {}, [icon('file', 13), a.route]) : null,
+          el('span', { class: 'note-owner', title: 'Created by' }, [icon('user', 13), a.author?.name || 'Unattributed']),
         ]),
-        el('div', { class: 'note-owner' }, [`Assignee · ${a.assignee?.name ?? 'Unassigned'}`]),
         cb.onThread ? el('button', {
           class: 'open-thread', type: 'button', 'aria-label': `Open thread ${a.n}`,
           onClick: (e: Event) => { e.stopPropagation(); cb.onThread?.(a, e.currentTarget as HTMLElement); },
-        }, [`Open thread${a.replies?.length ? ` · ${a.replies.length} ${a.replies.length === 1 ? 'reply' : 'replies'}` : ''}`]) : null,
+        }, [icon('chat', 14), `Open thread${a.replies?.length ? ` · ${a.replies.length} ${a.replies.length === 1 ? 'reply' : 'replies'}` : ''}`]) : null,
       ],
     );
     const wire = document.createElementNS(SVG_NS, 'line');

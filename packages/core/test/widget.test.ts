@@ -873,116 +873,70 @@ describe('collaborative threads', () => {
 
 });
 
-describe('thread assignment', () => {
+describe('creator', () => {
   const jane = { id: 'jane', name: 'Jane Doe' };
   const sam = { id: 'sam', name: 'Sam Lee' };
   const alex = { id: 'alex', name: 'Alex Rivera' };
-  const choose = (id: string) => {
-    const picker = q<HTMLSelectElement>('[aria-label="Assign thread to"]')!;
-    picker.focus();
-    picker.value = id;
-    picker.dispatchEvent(new Event('change'));
-  };
 
-  test('assign, reassign, and unassign preserve authorship and record readable history', async () => {
-    const original = annotation('a', 1, '#title', { author: jane, replies: [{ id: 'r', body: 'Reviewing', author: sam, createdAt: 1 }] });
-    const storage = { ...memoryStorage([original]), identity: alex };
+  test('cards and the list show who created the note, with no assignee controls', async () => {
+    inst = mount({ storage: { ...memoryStorage([annotation('a', 1, '#title', { author: jane, assignee: sam })]), identity: alex } });
+    await inst.ready;
+    expect(q('.note-owner')!.textContent).toBe('Jane Doe');
+    expect(q('.note-owner')!.getAttribute('title')).toBe('Created by');
+    await openToolbar();
+    q<HTMLElement>('.note[data-id="a"]')!.click();
+    expect(q('.editor select')).toBeNull();
+    button('Stop annotating')!.click();
+    button('Open thread 1')!.click();
+    expect(q('.thread select')).toBeNull();
+    expect(button('Change assignee')).toBeNull();
+    expect(q('.thread')!.textContent).not.toContain('Assignee');
+  });
+
+  test('editing keeps the original author and records no events', async () => {
+    const storage = { ...memoryStorage([annotation('a', 1, '#title', { author: jane, assignee: sam })]), identity: alex };
     inst = mount({ storage });
     await inst.ready;
-    button('Open thread 1')!.click();
-    expect(Array.from(q<HTMLSelectElement>('select')!.options).map((o) => o.text)).toEqual(['Unassigned', 'Alex Rivera', 'Jane Doe', 'Sam Lee']);
-    choose(sam.id);
-    let saved = (await storage.load())[0];
-    expect(saved.author).toEqual(jane);
-    expect(saved.replies).toEqual(original.replies);
-    expect(saved.assignee).toEqual(sam);
-    expect(saved.events?.[0]).toMatchObject({ type: 'assigned', author: alex, assignee: sam });
-    expect(q('.thread-history')!.textContent).toContain('Alex Rivera assigned this thread to Sam Lee');
-    expect(q('.note-owner')!.textContent).toContain('Sam Lee');
-    button('Assign to me')!.click();
-    expect((await storage.load())[0].assignee).toEqual(alex);
-    button('Unassign thread')!.click();
-    saved = (await storage.load())[0];
-    expect(saved.assignee).toBeUndefined();
-    expect(saved.author).toEqual(jane);
-    expect(saved.events?.map((event) => event.type)).toEqual(['assigned', 'assigned', 'unassigned']);
-    expect(q('.thread-history')!.textContent).toContain('Alex Rivera unassigned this thread');
+    await openToolbar();
+    q<HTMLElement>('.note[data-id="a"]')!.click();
+    const body = q<HTMLTextAreaElement>('.editor textarea')!;
+    body.value = 'Updated';
+    body.dispatchEvent(new Event('input'));
+    q<HTMLButtonElement>('.editor .btn.primary')!.click();
+    const saved = (await storage.load())[0];
+    expect(saved).toMatchObject({ body: 'Updated', author: jane, updatedBy: alex });
+    expect(saved.events ?? []).toEqual([]);
   });
 
-  test('server directory is authoritative and viewers see ownership without controls', async () => {
-    const notes = [annotation('a', 1, '#title', { author: sam, assignee: sam })];
-    inst = mount({ storage: { ...memoryStorage(notes), identity: jane, collaborators: [jane, alex] } });
+  test('older assignment events stay out of the thread history', async () => {
+    const notes = [annotation('a', 1, '#title', { author: jane, events: [
+      { id: 'e1', type: 'assigned', author: jane, assignee: sam, createdAt: 2 },
+      { id: 'e2', type: 'resolved', author: sam, createdAt: 3 },
+    ] })];
+    inst = mount({ storage: { ...memoryStorage(notes), identity: jane } });
     await inst.ready;
     button('Open thread 1')!.click();
-    const options = Array.from(q<HTMLSelectElement>('select')!.options);
-    expect(options.find((option) => option.value === sam.id)!.disabled).toBe(true);
-    expect(options.filter((option) => !option.disabled).map((option) => option.text)).toEqual(['Unassigned', 'Jane Doe', 'Alex Rivera']);
-    inst.destroy();
-    inst = mount({ annotations: notes });
-    await inst.ready;
-    button('Open thread 1')!.click();
-    expect(q('.owner-label')!.textContent).toContain('Sam Lee');
-    expect(q('.thread select')).toBeNull();
-    expect(button('Assign to me')).toBeNull();
+    const history = q('.thread-history')!.textContent;
+    expect(history).not.toContain('assigned');
+    expect(history).toContain('Sam Lee resolved this thread');
   });
 
-  test('failed assignment preserves draft and owner and restores picker focus for retry', async () => {
-    let reject!: (error: Error) => void;
-    const notes = [annotation('a', 1, '#title', { author: jane })];
-    const save = vi.fn(() => new Promise<void>((_, fail) => { reject = fail; }));
-    inst = mount({ storage: { load: () => notes, save, identity: jane, collaborators: [jane, sam] } });
-    await inst.ready;
-    button('Open thread 1')!.click();
-    const input = q<HTMLTextAreaElement>('.thread textarea')!;
-    input.value = 'Keep my reply';
-    input.dispatchEvent(new Event('input'));
-    choose(sam.id);
-    expect(q<HTMLSelectElement>('select')!.disabled).toBe(true);
-    expect(shadow().activeElement).toBe(q('.thread'));
-    button('Assign to me')!.click();
-    expect(save).toHaveBeenCalledOnce();
-    reject(new Error('Assignment could not be saved'));
-    await vi.waitFor(() => expect(q('.thread .save-error')!.textContent).toContain('Assignment could not be saved'));
-    expect(q('.owner-label')!.textContent).toContain('Unassigned');
-    expect(q<HTMLSelectElement>('select')!.value).toBe('');
-    expect(shadow().activeElement).toBe(q('select'));
-    expect(q<HTMLTextAreaElement>('.thread textarea')!.value).toBe('Keep my reply');
-  });
-
-  test('successful asynchronous assignment restores picker focus and live updates keep reply selection', async () => {
-    let finish!: (next: Annotation[]) => void;
+  test('live updates keep the reply draft in an open thread', async () => {
     let update!: (next: Annotation[]) => void;
     const notes = [annotation('a', 1, '#title', { author: jane })];
-    const save = vi.fn<(next: Annotation[]) => Promise<Annotation[]>>(() => new Promise((resolve) => { finish = resolve; }));
-    inst = mount({ storage: { load: () => notes, save, identity: jane, collaborators: [jane, sam], subscribe(listener) { update = listener; return () => {}; } } });
+    inst = mount({ storage: { load: () => notes, save: vi.fn(), identity: jane, subscribe(listener) { update = listener; return () => {}; } } });
     await inst.ready;
     button('Open thread 1')!.click();
-    choose(sam.id);
-    finish(save.mock.calls[0][0]);
-    await vi.waitFor(() => expect(shadow().activeElement).toBe(q('select')));
-    expect(q<HTMLSelectElement>('select')!.value).toBe(sam.id);
     const input = q<HTMLTextAreaElement>('.thread textarea')!;
     input.value = 'Keep this draft';
     input.dispatchEvent(new Event('input'));
     input.focus();
     input.setSelectionRange(2, 4);
-    update([{ ...save.mock.calls[0][0][0], assignee: jane }]);
+    update([{ ...notes[0], body: 'Changed elsewhere' }]);
     const replacement = q<HTMLTextAreaElement>('.thread textarea')!;
     expect(replacement.value).toBe('Keep this draft');
     expect(shadow().activeElement).toBe(replacement);
     expect([replacement.selectionStart, replacement.selectionEnd]).toEqual([2, 4]);
-    expect(q('.owner-label')!.textContent).toContain('Jane Doe');
-  });
-
-  test('empty authoritative directory and missing identity prevent assignment', async () => {
-    const save = vi.fn();
-    inst = mount({ storage: { load: () => [annotation('a', 1, '#title', { author: sam })], save, identity: null, collaborators: [] } });
-    await inst.ready;
-    button('Open thread 1')!.click();
-    expect(q<HTMLSelectElement>('select')!.options).toHaveLength(1);
-    expect(q<HTMLSelectElement>('select')!.disabled).toBe(true);
-    expect(button('Assign to me')!.disabled).toBe(true);
-    expect(button('Unassign thread')!.disabled).toBe(true);
-    expect(save).not.toHaveBeenCalled();
+    expect(q('.thread-history')!.textContent).toContain('Changed elsewhere');
   });
 });

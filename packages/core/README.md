@@ -4,7 +4,7 @@ Annotate your prototype, discuss changes, and assign the next step. One package 
 both the browser widget and Vite integration.
 
 ```sh
-npm install https://github.com/staple-lab/annotoo/releases/download/v0.3.0/staplelab-annotoo-0.3.0.tgz
+npm install https://github.com/staple-lab/annotoo/releases/download/v0.4.0/staplelab-annotoo-0.4.0.tgz
 ```
 
 ```ts

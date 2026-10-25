@@ -1,33 +1,23 @@
-# Annotoo 0.3.0
+# Annotoo 0.4.0
 
-One package and one Vite config entry. Annotoo now starts automatically in development,
-saves Git-backed discussions, and stays out of production builds by default.
+Discussions open where the note is. A thread now opens in place of its note's card,
+beside the element it describes, and each note shows who created it.
 
 ```sh
-npm install https://github.com/staple-lab/annotoo/releases/download/v0.3.0/staplelab-annotoo-0.3.0.tgz
+npm install https://github.com/staple-lab/annotoo/releases/download/v0.4.0/staplelab-annotoo-0.4.0.tgz
 ```
 
-```ts
-import annotoo from '@staplelab/annotoo/vite';
+- Threads open in the note's card, beside the annotated element. Notes on another page,
+  or whose element can't be found, still open in the side panel.
+- Notes show the person who created them. Assignment controls are removed.
+- Posting a reply scrolls it into view. Resolve thread is green and aligned with the reply box.
+- Note cards use an issue-style layout with category, page and creator.
 
-// Add to your existing Vite plugins:
-annotoo()
-```
+## Upgrade from 0.3.0
 
-- Use `annotoo({ build: 'viewer' })` to deliberately publish a read-only discussion snapshot.
-- New projects need no browser initialization or empty annotation JSON.
-- Existing threads, authors, replies, assignments and legacy annotation files remain compatible.
-- The browser `mount()` API remains available for non-Vite and advanced integrations.
-
-## Migrate from 0.2.0
-
-1. Install the new package and remove `@staplelab/vite-plugin-annotoo` from your dependencies.
-2. Change the plugin import to `@staplelab/annotoo/vite` and use `annotoo()` in your existing plugins.
-3. Remove the manual browser `mount()` call and its annotation import; the plugin now initializes the widget.
-4. Remove the old development-only plugin guard. Default configuration already excludes production output.
-5. If you publish review copies, set `build: 'viewer'`. Keep `.annotoo.comments/` and existing legacy annotation files.
-
-For custom browser initialization, set `autoMount: false` and keep one manual `mount()` call.
+Install the new package; no configuration changes are needed. Existing thread files load
+unchanged. Threads that were assigned keep their `assignee` field and assignment events in
+the file, but Annotoo no longer shows them or includes them in Markdown exports.
 
 Assets include one installable package, the standalone browser script, and SHA-256 checksums.
 This release is distributed through GitHub Releases.

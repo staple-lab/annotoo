@@ -3,7 +3,7 @@
 # Annotoo
 
 **Annotations and discussions beside your prototype's UI.** Point at an element,
-leave a note, and reply, assign or resolve with your team. Threads travel with your code
+leave a note, and reply or resolve with your team. Threads travel with your code
 through Git; optionally publish a read-only review copy.
 
 [Live demo](https://staple-lab.github.io/annotoo/demo/) ·
@@ -14,10 +14,10 @@ through Git; optionally publish a read-only review copy.
 
 ## One package, any framework
 
-Install the [v0.3.0 release package](https://github.com/staple-lab/annotoo/releases/tag/v0.3.0):
+Install the [v0.4.0 release package](https://github.com/staple-lab/annotoo/releases/tag/v0.4.0):
 
 ```bash
-npm install https://github.com/staple-lab/annotoo/releases/download/v0.3.0/staplelab-annotoo-0.3.0.tgz
+npm install https://github.com/staple-lab/annotoo/releases/download/v0.4.0/staplelab-annotoo-0.4.0.tgz
 ```
 
 Add Annotoo to your Vite config. It starts automatically in development, saves threads
@@ -71,13 +71,11 @@ git config user.email "you@example.com"
 ```
 
 Open the cockatoo tab, select an element, and save a note with **⌘ Enter** on Mac or
-**Ctrl Enter**. Open its thread to reply, assign, unassign, resolve or reopen.
+**Ctrl Enter**. Open its thread to reply, resolve or reopen.
 The **Open**, **Resolved** and **All** filters keep completed discussions accessible.
 
-![Assigning a thread to a teammate](docs/screenshots/assignment.jpg)
-
-Assignees come from your Git identity, local Git history and stored thread participants.
-Contributions retain their authors; assignment and resolution retain their history.
+Each note shows who created it, from their Git identity. Contributions retain their
+authors; resolution retains its history.
 Names and hashed email IDs are stored with discussions. Raw emails are not published.
 Git identity provides attribution, not authentication.
 
@@ -101,7 +99,7 @@ other visitors' copies. The public demo uses fictional contributors.
 ## Plain HTML
 
 ```html
-<script src="https://staple-lab.github.io/annotoo/releases/v0.3.0/annotoo.js"></script>
+<script src="https://staple-lab.github.io/annotoo/releases/v0.4.0/annotoo.js"></script>
 ```
 
 The script starts automatically and saves in your browser. **Export HTML** creates a

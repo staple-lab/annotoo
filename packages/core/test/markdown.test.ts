@@ -53,19 +53,18 @@ describe('annotationsToMarkdown', () => {
     expect(md).toContain('**Resolved** by Engineer');
   });
 
-  test('exports current ownership and assignment history without changing authorship', () => {
+  test('exports the creator and leaves out older assignment history', () => {
     const jane = { id: 'jane', name: 'Jane Doe' };
     const sam = { id: 'sam', name: 'Sam Lee' };
     const md = annotationsToMarkdown([a(1, { author: jane, assignee: sam,
       events: [
         { id: 'e1', type: 'unassigned', author: jane, createdAt: 2 },
         { id: 'e2', type: 'assigned', author: jane, assignee: sam, createdAt: 3 },
+        { id: 'e3', type: 'resolved', author: sam, createdAt: 4 },
       ] })], 'Review');
     expect(md).toContain('By Jane Doe');
-    expect(md).toContain('Assigned to Sam Lee');
-    expect(md).toContain('Unassigned by Jane Doe');
-    expect(md).toContain('Assigned to Sam Lee by Jane Doe');
-    expect(md).not.toContain('Reopened');
+    expect(md).toContain('Resolved by Sam Lee');
+    expect(md).not.toMatch(/assigned/i);
   });
 
 });
