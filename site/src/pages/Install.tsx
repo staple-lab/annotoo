@@ -1,7 +1,7 @@
 import { CodeBlock } from '../components/CodeBlock';
 import { Link } from '../router';
 
-const archive = 'https://github.com/staple-lab/annotoo/releases/download/v0.4.0/staplelab-annotoo-0.4.0.tgz';
+const pkg = '@staplelab/annotoo';
 const config = (framework?: 'react' | 'vue') => `import { defineConfig } from 'vite';
 ${framework ? `import ${framework} from '@vitejs/plugin-${framework}';\n` : ''}import annotoo from '@staplelab/annotoo/vite';
 
@@ -15,8 +15,8 @@ export function Install() {
       <h1>One package. One config entry.</h1>
       <p className="lede">Add Annotoo to Vite. It starts automatically in development and saves
         discussions with your code.</p>
-      <p>Install the <a href="https://github.com/staple-lab/annotoo/releases/tag/v0.4.0">v0.4.0 release package</a>:</p>
-      <CodeBlock code={{ npm: `npm install ${archive}`, pnpm: `pnpm add ${archive}`, yarn: `yarn add ${archive}` }} />
+      <p>Install <a href="https://www.npmjs.com/package/@staplelab/annotoo"><code>@staplelab/annotoo</code></a> from npm:</p>
+      <CodeBlock code={{ npm: `npm install ${pkg}`, pnpm: `pnpm add ${pkg}`, yarn: `yarn add ${pkg}` }} />
       <h2>Add to your Vite config</h2>
       <CodeBlock id="install-framework" tabsLabel="Framework" label="vite.config.ts" code={{ JavaScript: config(), React: config('react'), Vue: config('vue') }} />
       <p>Keep your existing plugins. Run your usual development command. No component,
@@ -33,8 +33,8 @@ export function Install() {
       <h2>Set your Git identity</h2>
       <CodeBlock code={`git config user.name "Your Name"
 git config user.email "you@example.com"`} />
-      <p>Both values are required for Git-backed writing. Your name appears on comments; your
-        email becomes a hashed ID. Raw email is not stored in threads. This is attribution,
+      <p>Both values are required for Git-backed writing. Your name appears on comments (change
+        it under <strong>Your name</strong> in Settings); your email becomes a hashed ID. Raw email is not stored in threads. This is attribution,
         not verified identity.</p>
       <p>Open the cockatoo tab, select an element, and save with <kbd>⌘ Enter</kbd> on Mac or
         <kbd>Ctrl Enter</kbd>. Open a thread to reply, resolve or reopen.
@@ -44,7 +44,7 @@ git config user.email "you@example.com"`} />
       <p>The browser API works with any framework. Call <code>mount()</code> once in a browser
         entry point. Without a custom storage adapter, author mode saves only in this browser.
         See the <Link to="/api">API</Link> for manual setup and development flags.</p>
-      <CodeBlock code={`<script src="https://annotoo.staplelab.com/releases/v0.4.0/annotoo.js"></script>`} />
+      <CodeBlock code={`<script src="https://annotoo.staplelab.com/releases/v0.5.0/annotoo.js"></script>`} />
       <p>On plain HTML pages, the script starts automatically. <strong>Export HTML</strong>
         creates a self-contained, read-only copy.</p>
     </article>

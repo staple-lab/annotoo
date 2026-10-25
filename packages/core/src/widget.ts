@@ -54,6 +54,7 @@ const KEY_VISIBLE = 'annotoo:visible';
 const KEY_OPEN = 'annotoo:open';
 const KEY_SETTINGS = 'annotoo:settings';
 const KEY_LAST_CATEGORY = 'annotoo:category';
+const KEY_NAME = 'annotoo:name';
 const EDITOR_W = 300;
 const THREAD_W = 340;
 
@@ -145,7 +146,14 @@ export function createWidget(opts: WidgetOptions): Widget {
   const replyDrafts = new Map<string, string>();
   const threadErrors = new Map<string, string>();
   const canWrite = () => author && opts.storage.identity !== null;
-  const currentAuthor = (): CommentAuthor => opts.storage.identity ?? { id: 'local', name: 'Local author' };
+  // A name chosen in settings replaces the identity's display name; the ID never changes.
+  let chosenName = readPref(KEY_NAME, '').trim();
+  opts.storage.setDisplayName?.(chosenName || null);
+  const me = (): CommentAuthor | null | undefined => {
+    const identity = opts.storage.identity;
+    return identity && chosenName ? { ...identity, name: chosenName } : identity;
+  };
+  const currentAuthor = (): CommentAuthor => me() ?? { id: 'local', name: 'Local author' };
   const identityHelp = () => opts.storage.identityError || 'Set Git user.name and user.email in this repository, then restart the development server to join the discussion.';
 
   const left = () => settings.position.endsWith('left');
@@ -522,6 +530,27 @@ export function createWidget(opts: WidgetOptions): Widget {
     ));
   }
 
+  /** Name shown on new notes and replies; empty falls back to the Git name. */
+  function nameSetting(gitName: string): HTMLElement {
+    const input = el('input', { type: 'text', id: 'annotoo-name', maxlength: 200, placeholder: gitName, autocomplete: 'name', spellcheck: 'false' }) as HTMLInputElement;
+    input.value = chosenName || gitName;
+    const apply = () => {
+      const next = input.value.trim();
+      chosenName = next === gitName ? '' : next;
+      if (!next) input.value = gitName;
+      writePref(KEY_NAME, chosenName);
+      opts.storage.setDisplayName?.(chosenName || null);
+      renderThread();
+    };
+    input.addEventListener('change', apply);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
+    return el('div', { class: 'setting stack' }, [
+      el('label', { class: 'label', for: 'annotoo-name' }, ['Your name']),
+      input,
+      el('span', { class: 'help' }, ['Shown on notes and replies you create. Defaults to your Git name.']),
+    ]);
+  }
+
   function renderSettings(): void {
     const wasPainted = !!settingsPop;
     settingsPop?.remove();
@@ -531,6 +560,7 @@ export function createWidget(opts: WidgetOptions): Widget {
     const status = author ? opts.storage.identity === null ? identityHelp() : opts.storage.describe?.() ?? '' : `View only · ${routeAnnotations().length} on this page`;
     settingsPop = el('div', { class: `surface settings${corner()}`, role: 'dialog', 'aria-label': 'Annotoo settings' }, [
       el('h3', {}, ['Settings']),
+      author && opts.storage.identity ? nameSetting(opts.storage.identity.name) : null,
       el('div', { class: 'setting stack' }, [
         el('span', { class: 'label' }, ['Show notes']),
         segmented('Show notes', settings.display, [['always', 'Always'], ['hover', 'On hover'], ['markers', 'Numbers only']], (display) => saveSettings({ display })),
@@ -745,7 +775,7 @@ export function createWidget(opts: WidgetOptions): Widget {
           return;
         }
         review.hidden = true;
-        commit(annotations.map((a) => (a.id === existing.id ? { ...a, title: t, body: b, category, updatedAt: Date.now(), ...(opts.storage.identity ? { updatedBy: opts.storage.identity } : {}) } : a)), () => {
+        commit(annotations.map((a) => (a.id === existing.id ? { ...a, title: t, body: b, category, updatedAt: Date.now(), ...(me() ? { updatedBy: me()! } : {}) } : a)), () => {
           closeEditor();
           setActive(existing.id);
         }, onError);
@@ -760,7 +790,7 @@ export function createWidget(opts: WidgetOptions): Widget {
           category,
           createdAt: Date.now(),
           route: currentRoute() ?? undefined,
-          ...(opts.storage.identity ? { author: opts.storage.identity } : {}),
+          ...(me() ? { author: me()! } : {}),
         };
         commit([...annotations, created], () => {
           closeEditor();

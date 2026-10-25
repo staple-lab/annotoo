@@ -413,6 +413,7 @@ kbd { font-family: inherit; font-size: 10.5px; padding: 0 4px; border-radius: 4p
 .setting.stack { flex-direction: column; align-items: stretch; gap: 6px; }
 .setting .label { font-size: 12.5px; color: var(--n-ink-2); }
 .setting .help { font-size: 11.5px; color: var(--n-muted); }
+.setting input[type="text"] { height: 30px; padding: 0 8px; border: 1px solid var(--n-line); border-radius: 7px; background: var(--n-surface); color: var(--n-ink); font: inherit; font-size: 12.5px; }
 .keys { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin: 0; font-size: 12.5px; }
 .keys dt { color: var(--n-ink-2); }
 .keys dd { margin: 0; text-align: right; }

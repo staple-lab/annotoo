@@ -17,6 +17,16 @@ export type AnnotooPluginOptions = {
   endpoint?: string;
 };
 const MAX_BODY = 5 * 1024 * 1024;
+/** A display name chosen in the browser: decoded, trimmed, printable and at most 200 characters. */
+function displayName(header: string | string[] | undefined): string | undefined {
+  if (typeof header !== 'string') return undefined;
+  let name: string;
+  try { name = decodeURIComponent(header).trim(); } catch { throw new RequestError(400, 'Invalid display name'); }
+  if (!name) return undefined;
+  if (name.length > 200 || Array.from(name).some((c) => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)) throw new RequestError(400, 'Display names must be 1 to 200 printable characters');
+  return name;
+}
+
 function readBody(req: Connect.IncomingMessage): Promise<string> {
   return new Promise((ok, fail) => {
     let size = 0;
@@ -102,6 +112,8 @@ if (import.meta.hot) import.meta.hot.dispose(() => {
             if ((origin && origin !== expectedOrigin) || req.headers['sec-fetch-site'] === 'cross-site') { send(403, { error: 'Comment writes must come from this development server origin' }); return; }
             const identity = gitIdentity(root);
             if (!identity.identity) { send(403, { error: identity.identityError }); return; }
+            // The Git email hash stays the author ID; only the display name can be chosen.
+            const actor = { ...identity.identity, name: displayName(req.headers['x-annotoo-name']) ?? identity.identity.name };
             if (!req.headers['if-match']) { send(428, { error: 'A comment revision is required. Refresh comments before saving.' }); return; }
             let requested: unknown;
             try { requested = JSON.parse(await readBody(req)); }
@@ -110,7 +122,7 @@ if (import.meta.hot) import.meta.hot.dispose(() => {
             const result = await withWriteLock(repository, projectDirectory(commentsDir, project), async () => {
               const snapshot = readSnapshot(repository, file, commentsDir, project);
               if (req.headers['if-match'] !== snapshot.revision) return { status: 409, body: { error: 'Comments changed since you loaded them. Refresh comments before retrying; your draft has not been saved.', revision: snapshot.revision } };
-              writeChanges(repository, projectDirectory(commentsDir, project), prepareChanges(snapshot, threads, identity.identity!, project, collaborators(root, snapshot)));
+              writeChanges(repository, projectDirectory(commentsDir, project), prepareChanges(snapshot, threads, actor, project, collaborators(root, snapshot)));
               return { status: 200, body: payload() };
             });
             send(result.status, result.body);

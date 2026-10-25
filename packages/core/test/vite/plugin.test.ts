@@ -171,6 +171,22 @@ describe('Git-backed collaborative comments', () => {
     expect(reopened.annotations[0].replies).toEqual(resolved.replies);
   });
 
+  test('a chosen display name replaces the Git name on new work but keeps the Git author ID', async () => {
+    const { identity, revision } = await get();
+    const named: Payload = await (await put([annotation()], revision, { 'x-annotoo-name': encodeURIComponent('Ada L. 🦜') })).json();
+    expect(named.annotations[0].author).toEqual({ id: identity!.id, name: 'Ada L. 🦜' });
+    expect(named.identity).toEqual(identity);
+    const reply = { id: 'r1', body: 'Looks right', author: { id: 'fake', name: 'Fake' }, createdAt: 1 };
+    const plain: Payload = await (await put([{ ...named.annotations[0], replies: [reply] }], named.revision)).json();
+    expect(plain.annotations[0].replies![0].author).toEqual(identity);
+    expect(plain.annotations[0].author).toEqual({ id: identity!.id, name: 'Ada L. 🦜' });
+    for (const bad of ['%E0%A4%A', encodeURIComponent('x\ny'), encodeURIComponent('n'.repeat(201))]) {
+      const res = await put([], plain.revision, { 'x-annotoo-name': bad });
+      expect(res.status).toBe(400);
+    }
+    expect((await get()).annotations).toHaveLength(1);
+  });
+
   test('edits preserve original authorship and server timestamps, ignoring metadata forgery', async () => {
     const initial: Payload = await (await put([annotation()], (await get()).revision)).json();
     const original = initial.annotations[0];

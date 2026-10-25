@@ -21,9 +21,9 @@ export function Overview() {
       <CodeBlock
         id="install-snippet"
         code={{
-          npm: 'npm install https://github.com/staple-lab/annotoo/releases/download/v0.4.0/staplelab-annotoo-0.4.0.tgz',
-          pnpm: 'pnpm add https://github.com/staple-lab/annotoo/releases/download/v0.4.0/staplelab-annotoo-0.4.0.tgz',
-          yarn: 'yarn add https://github.com/staple-lab/annotoo/releases/download/v0.4.0/staplelab-annotoo-0.4.0.tgz',
+          npm: 'npm install @staplelab/annotoo',
+          pnpm: 'pnpm add @staplelab/annotoo',
+          yarn: 'yarn add @staplelab/annotoo',
         }}
       />
 

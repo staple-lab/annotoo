@@ -116,6 +116,21 @@ describe('devServerStorage', () => {
     expect(header).toBe('"first"');
   });
 
+  test('sends a chosen display name with saves until it is cleared', async () => {
+    const names: (string | undefined)[] = [];
+    stubFetch((_url, init) => {
+      if (init?.method === 'PUT') names.push((init.headers as Record<string, string>)['x-annotoo-name']);
+      return Response.json({ annotoo: 1, file: 'seed.json', revision: '"r"', annotations: [] });
+    });
+    const s = devServerStorage();
+    await s.load();
+    s.setDisplayName?.('  Ada Lovelace ');
+    await s.save([]);
+    s.setDisplayName?.(null);
+    await s.save([]);
+    expect(names).toEqual(['Ada%20Lovelace', undefined]);
+  });
+
   test('a stale save refreshes collaborators’ changes and rejects without losing the draft', async () => {
     let changed = false;
     const draft = [c('mine')];
