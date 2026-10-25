@@ -24,14 +24,10 @@ export function Sharing() {
         page's open pins without losing their history.
       </p>
 
-      <h2>Assign the next step</h2>
-      <p>Choose an assignee in the thread so the team knows who owns the next step. Unassign
-        it when no one owns it. Assignment keeps the original authors and replies intact,
-        and changes appear in the thread history alongside resolve and reopen events.</p>
-      <p>The picker includes your current Git identity, authors from local Git history, and
-        participants already stored in threads. It uses names and hashed IDs. A hosted viewer
-        shows the saved assignee without publishing a raw email directory or allowing edits.</p>
-      <figure><img src={`${import.meta.env.BASE_URL}screenshots/assignment.jpg`} alt="Assigning a prototype discussion to a teammate" loading="lazy" style={{ width: '100%', borderRadius: 12 }} /></figure>
+      <h2>See who started it</h2>
+      <p>Every note shows the person who created it, taken from their Git identity. Edits and
+        replies keep that name; each reply carries its own author. Names and hashed IDs are
+        stored, so a hosted viewer never publishes a raw email directory.</p>
       <h2>Exchange changes through Git</h2>
       <p>
         Threads are separate JSON files inside <code>.annotoo.comments/</code> at the repository
@@ -56,7 +52,7 @@ git push`} />
         Separate files keep unrelated threads apart, but Git can still report a conflict in one
         thread. Use your normal merge tool. Keep one valid JSON envelope, preserve both people's
         replies and resolution events with their original IDs, and decide the current open or
-        resolved status and current assignee. Preserve assignment events too. If one side deleted the thread while the other replied, agree which
+        resolved status. If one side deleted the thread while the other replied, agree which
         outcome to keep. Remove conflict markers, finish the merge, and open the discussion in
         the prototype to check it. Annotoo does not silently resolve Git conflicts for you.
       </p>

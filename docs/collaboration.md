@@ -58,16 +58,11 @@ Start the prototype's development server as usual.
 Old notes without an author are shown as **Unattributed**. A new reply adds its own
 author without inventing an identity for the original note.
 
-Assign the next step to a teammate in the thread, or unassign it when no one owns it.
-The opening author, reply authors and assignee are separate: assigning work does not
-change who wrote a comment. Assignment events remain in the history. The picker draws from your current Git identity,
-authors in local Git history, and participants already stored in threads. Names and
-hashed IDs identify them; a raw email directory is not published in the hosted viewer.
-The hosted viewer can read the saved assignee but cannot edit it.
+Each note shows the person who created it. Editing a note or replying never changes
+that name. Names and hashed IDs identify people; a raw email directory is not published
+in the hosted viewer.
 
 ![A discussion beside the prototype](screenshots/threads.jpg)
-
-![Choosing an assignee](screenshots/assignment.jpg)
 
 ## 3. Share through Git
 
@@ -113,7 +108,7 @@ If Git reports a conflict:
    time. Do the same for resolution events; do not duplicate records with the same ID.
 3. Decide whether the thread should currently be open or resolved. Keep `status`,
    `resolvedAt` and `resolvedBy` consistent with that decision while retaining its event
-   history. Keep the current assignee and assignment events consistent too. Discuss deletion-versus-reply conflicts with the other contributor before
+   history. Discuss deletion-versus-reply conflicts with the other contributor before
    choosing whether the thread remains deleted.
 4. Remove conflict markers, validate the JSON, then finish the merge with your usual
    Git workflow. Open the thread in the running prototype to verify the result.
@@ -124,7 +119,7 @@ discard another person's reply. The Git history remains available for review.
 ## 5. Publish a review copy
 
 Set `annotoo({ build: 'viewer' })` in your Vite config, then build and deploy. The plugin
-embeds the current merged threads, including replies, assignments and resolution history.
+embeds the current merged threads, including replies and resolution history.
 Without this opt-in, production builds contain no Annotoo widget or thread snapshot.
 
 The normal hosted viewer is read-only. It has no Git credentials or shared write

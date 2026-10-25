@@ -4,34 +4,31 @@ import { Link } from '../router';
 import { hasLocalChanges, resetAnnotations } from '../annotoo';
 
 const viewerHref = `${import.meta.env.BASE_URL}?annotoo=viewer`;
-const demoHref = `${import.meta.env.BASE_URL}demo/`;
 
 export function Overview() {
   const changed = hasLocalChanges();
   return (
     <article className="prose overview">
       <h1 className="hero-title" data-annotoo-id="hero-title">
-        Discuss the prototype, beside the UI
+        Annotations for prototypes
       </h1>
       <p className="lede">
         Point at any element in your prototype and explain it: what it does, where its data
-        comes from, what isn't built yet. Reply and resolve with your team through Git. The
-        discussion can ship with a review build, so everyone who opens the link can read it in context.
+        comes from, what isn't built yet. The notes ship with your build, so everyone who opens
+        the link sees them beside the UI they describe.
       </p>
 
       <CodeBlock
         id="install-snippet"
         code={{
-          npm: 'npm install https://github.com/staple-lab/annotoo/releases/download/v0.3.0/staplelab-annotoo-0.3.0.tgz',
-          pnpm: 'pnpm add https://github.com/staple-lab/annotoo/releases/download/v0.3.0/staplelab-annotoo-0.3.0.tgz',
-          yarn: 'yarn add https://github.com/staple-lab/annotoo/releases/download/v0.3.0/staplelab-annotoo-0.3.0.tgz',
+          npm: 'npm install https://github.com/staple-lab/annotoo/releases/download/v0.4.0/staplelab-annotoo-0.4.0.tgz',
+          pnpm: 'pnpm add https://github.com/staple-lab/annotoo/releases/download/v0.4.0/staplelab-annotoo-0.4.0.tgz',
+          yarn: 'yarn add https://github.com/staple-lab/annotoo/releases/download/v0.4.0/staplelab-annotoo-0.4.0.tgz',
         }}
       />
 
       <Demo />
-      <p><a className="button" href={demoHref}>Open the full prototype demo</a></p>
 
-      <figure><img src={`${import.meta.env.BASE_URL}screenshots/threads.jpg`} alt="Jane Doe and Sam Lee discussing a prototype in an Annotoo thread" loading="lazy" style={{ width: '100%', borderRadius: 12 }} /></figure>
       <h2>How it works</h2>
       <ol className="steps">
         <li>
@@ -48,7 +45,7 @@ export function Overview() {
           <code>.annotoo.comments/</code> in your Git repo, with your Git display name.
         </li>
         <li>
-          <strong>Keep the discussion together.</strong> Open a thread to reply, assign, unassign, resolve or reopen.
+          <strong>Keep the discussion together.</strong> Open a thread to reply, resolve or reopen.
           Commit, pull and push the thread files with your normal Git workflow.
         </li>
         <li>

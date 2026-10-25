@@ -6,7 +6,7 @@ or a page you didn't pre-wire with a `<script>` tag.
 ## Setup
 
 1. Host `annotoo.js` somewhere reachable (your dev server, or use
-   `https://staple-lab.github.io/annotoo/releases/v0.3.0/annotoo.js`). Note its URL.
+   `https://staple-lab.github.io/annotoo/releases/v0.4.0/annotoo.js`). Note its URL.
 2. Create a new browser bookmark. For the **URL**, paste the snippet below, replacing
    `HOST_URL` with where `annotoo.js` lives.
 

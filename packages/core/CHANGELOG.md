@@ -1,5 +1,12 @@
 # @staplelab/annotoo
 
+## 0.4.0
+
+- Open threads in place of their note's card, beside the annotated element; notes without a card on the page keep the side panel.
+- Show who created each note and remove assignment controls. Existing assignee data still loads but is no longer shown or exported.
+- Scroll a new reply into view after posting. Resolve thread is green and aligned with the reply box.
+- Use an issue-style note card with category, page and creator.
+
 ## 0.3.0
 
 - Include the Vite integration at `@staplelab/annotoo/vite`; remove the separate plugin package.

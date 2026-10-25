@@ -55,6 +55,7 @@ const KEY_OPEN = 'annotoo:open';
 const KEY_SETTINGS = 'annotoo:settings';
 const KEY_LAST_CATEGORY = 'annotoo:category';
 const EDITOR_W = 300;
+const THREAD_W = 340;
 
 function readPref(key: string, fallback: string): string {
   try {
@@ -240,6 +241,10 @@ export function createWidget(opts: WidgetOptions): Widget {
   let dock: HTMLElement | null = null;
   let panel: HTMLElement | null = null;
   let thread: HTMLElement | null = null;
+  // A thread opens in place of its note's card; without one on this page it falls back to the side.
+  let threadInCard = false;
+  // Set after a reply saves so the next thread render scrolls the new reply into view.
+  let revealReplyId: string | null = null;
   let editor: HTMLElement | null = null;
   let settingsPop: HTMLElement | null = null;
   let toast: HTMLElement | null = null;
@@ -847,12 +852,26 @@ export function createWidget(opts: WidgetOptions): Widget {
 
   let editorFrame = 0;
   const onViewportChange = () => {
-    if (!editor || editorFrame) return;
+    if ((!editor && !threadInCard) || editorFrame) return;
     editorFrame = requestAnimationFrame(() => {
       editorFrame = 0;
       positionEditor();
+      positionThread();
     });
   };
+
+  /** Keeps an in-card thread where its note sits, beside the annotated element. */
+  function positionThread(): boolean {
+    const a = threadInCard && thread ? annotations.find((item) => item.id === threadId) : undefined;
+    if (!a || !thread) return false;
+    const size = { w: THREAD_W, h: thread.offsetHeight || 420 };
+    const box = layer.editorBoxFor(a, size);
+    if (!box) return false;
+    const pos = clampToViewport(box.x, box.y, size.w, size.h);
+    thread.style.left = `${pos.x}px`;
+    thread.style.top = `${pos.y}px`;
+    return true;
+  }
 
   // ---- collaborative thread detail --------------------------------------------------
   function authorLine(person: CommentAuthor | undefined, at: number): HTMLElement {
@@ -887,6 +906,8 @@ export function createWidget(opts: WidgetOptions): Widget {
     const input = thread?.querySelector<HTMLTextAreaElement>('textarea');
     if (threadId && input) replyDrafts.set(threadId, input.value);
     threadId = null;
+    if (threadInCard) layer.setEditing(null);
+    threadInCard = false;
     thread?.remove();
     thread = null;
     pendingThreadFocusLabel = null;
@@ -925,63 +946,10 @@ export function createWidget(opts: WidgetOptions): Widget {
     const reply = { id: newId(), body, author: currentAuthor(), createdAt: Date.now() };
     commit(annotations.map((item) => item.id === id ? { ...item, replies: [...(item.replies ?? []), reply] } : item), () => {
       replyDrafts.delete(id);
+      revealReplyId = reply.id;
       if (threadId === id) { const field = thread?.querySelector<HTMLTextAreaElement>('textarea'); if (field) field.value = ''; }
       showToast('Reply added');
     }, (message) => threadErrors.set(id, message));
-  }
-
-  function collaborators(): CommentAuthor[] {
-    // A server directory is authoritative, including an intentionally empty directory.
-    if (opts.storage.collaborators !== undefined) return opts.storage.collaborators;
-    const people = new Map<string, CommentAuthor>();
-    const add = (person?: CommentAuthor) => { if (person) people.set(person.id, person); };
-    for (const item of annotations) {
-      add(item.author); add(item.updatedBy); add(item.assignee); add(item.resolvedBy);
-      for (const reply of item.replies ?? []) add(reply.author);
-      for (const event of item.events ?? []) { add(event.author); add(event.assignee); }
-    }
-    add(currentAuthor());
-    return [...people.values()].sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  function assignThread(id: string, person?: CommentAuthor): void {
-    const a = annotations.find((item) => item.id === id);
-    if (!a || pending || !canWrite() || a.assignee?.id === person?.id) return;
-    if (person && !collaborators().some((candidate) => candidate.id === person.id)) return;
-    threadErrors.delete(id);
-    commit(annotations.map((item) => {
-      if (item.id !== id) return item;
-      const next: Annotation = { ...item, events: [...(item.events ?? []), {
-        id: newId(), type: person ? 'assigned' : 'unassigned', author: currentAuthor(), createdAt: Date.now(),
-        ...(person ? { assignee: person } : {}),
-      }] };
-      if (person) next.assignee = person;
-      else delete next.assignee;
-      return next;
-    }), () => showToast(person ? `Assigned to ${person.name}` : 'Thread unassigned'), (message) => threadErrors.set(id, message));
-  }
-
-  function assignmentControls(a: Annotation): HTMLElement {
-    const owner = el('div', { class: 'owner-label' }, [`Assignee · ${a.assignee?.name ?? 'Unassigned'}`]);
-    if (!author) return el('div', { class: 'thread-assignment' }, [owner]);
-    const people = collaborators();
-    const picker = el('select', {
-      'aria-label': 'Assign thread to', 'data-write': '', disabled: pending || !canWrite(),
-      onChange: (event: Event) => {
-        const id = (event.target as HTMLSelectElement).value;
-        assignThread(a.id, people.find((person) => person.id === id));
-      },
-    }, [el('option', { value: '' }, ['Unassigned']), ...people.map((person) => el('option', { value: person.id }, [person.name]))]);
-    // Retain a removed collaborator's ownership until explicitly reassigned.
-    if (a.assignee && !people.some((person) => person.id === a.assignee!.id)) picker.append(el('option', { value: a.assignee.id, disabled: true }, [a.assignee.name]));
-    picker.value = a.assignee?.id ?? '';
-    const me = people.find((person) => person.id === currentAuthor().id);
-    return el('div', { class: 'thread-assignment' }, [owner, picker,
-      el('div', { class: 'assignment-actions' }, [
-        el('button', { class: 'btn ghost', type: 'button', 'aria-label': 'Assign to me', 'data-write': '', 'data-empty': String(!me || a.assignee?.id === me.id), disabled: pending || !canWrite() || !me || a.assignee?.id === me.id, onClick: () => { if (me) assignThread(a.id, me); } }, ['Assign to me']),
-        el('button', { class: 'btn ghost', type: 'button', 'aria-label': 'Unassign thread', 'data-write': '', 'data-empty': String(!a.assignee), disabled: pending || !canWrite() || !a.assignee, onClick: () => assignThread(a.id) }, ['Unassign']),
-      ]),
-    ]);
   }
 
   function changeThreadStatus(id: string): void {
@@ -1026,6 +994,10 @@ export function createWidget(opts: WidgetOptions): Widget {
     if (previousInput) replyDrafts.set(threadId, previousInput.value);
     previous?.remove();
     thread = null;
+    // Open in the card when the note's element is on this page; otherwise use the side.
+    const inCard = !!a && isOnRoute(a, currentRoute()) && !unanchored.has(a.id) && !!layer.editorBoxFor(a, { w: THREAD_W, h: 420 });
+    if (inCard !== threadInCard) layer.setEditing(inCard && a ? a.id : null);
+    threadInCard = inCard;
     if (!a) {
       // Keep any reply draft accessible if another collaborator deletes its thread.
       thread = el('section', { class: `surface thread${corner()}`, role: 'dialog', tabindex: -1, 'aria-label': 'Deleted thread' }, [
@@ -1044,7 +1016,8 @@ export function createWidget(opts: WidgetOptions): Widget {
     ]);
     const timeline = [
       ...(a.replies ?? []).map((reply) => ({ at: reply.createdAt, node: el('article', { class: 'comment reply', dataset: { replyId: reply.id } }, [authorLine(reply.author, reply.createdAt), el('div', { class: 'comment-body' }, [reply.body])]) })),
-      ...(a.events ?? []).map((event) => ({ at: event.createdAt, node: el('div', { class: 'thread-event' }, [`${event.author.name} ${event.type === 'assigned' ? `assigned this thread to ${event.assignee?.name ?? 'a collaborator'}` : event.type === 'unassigned' ? 'unassigned this thread' : `${event.type} this thread`}`, el('time', { datetime: new Date(event.createdAt).toISOString() }, [new Date(event.createdAt).toLocaleString()])]) })),
+      // Assignment was retired; older assignment events stay in the file but aren't shown.
+      ...(a.events ?? []).filter((event) => event.type === 'resolved' || event.type === 'reopened').map((event) => ({ at: event.createdAt, node: el('div', { class: 'thread-event' }, [`${event.author.name} ${event.type} this thread`, el('time', { datetime: new Date(event.createdAt).toISOString() }, [new Date(event.createdAt).toLocaleString()])]) })),
     ].sort((x, y) => x.at - y.at);
     for (const entry of timeline) history.append(entry.node);
     if (a.status === 'resolved' && !(a.events ?? []).some((event) => event.type === 'resolved')) {
@@ -1073,20 +1046,29 @@ export function createWidget(opts: WidgetOptions): Widget {
     });
     sync();
     const error = threadErrors.get(a.id);
-    thread = el('section', { class: `surface thread${corner()}`, role: 'dialog', tabindex: -1, 'aria-label': `Thread ${a.n}`, 'aria-busy': String(pending) }, [
+    thread = el('section', { class: `surface thread${inCard ? ' in-card' : corner()}`, role: 'dialog', tabindex: -1, 'aria-label': `Thread ${a.n}`, 'aria-busy': String(pending), dataset: { cat: a.category ?? 'note' } }, [
       el('div', { class: 'panel-head' }, [el('span', { class: 'title' }, [`Thread #${a.n}`]), statusBadge(a), el('span', { class: 'grow' }), el('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Close thread', onClick: () => closeThread() }, [icon('x')])]),
       context,
-      assignmentControls(a),
       history,
       error ? el('div', { class: 'save-error', role: 'alert' }, [error]) : null,
       author ? el('div', { class: 'thread-composer' }, [
         canWrite() ? el('div', { class: 'reply-as' }, [`Replying as ${currentAuthor().name}`]) : el('div', { class: 'identity-help', role: 'status' }, [identityHelp()]),
         input,
-        el('div', { class: 'thread-actions' }, [el('button', { class: 'btn ghost', type: 'button', 'data-write': '', disabled: pending || !canWrite(), 'aria-label': a.status === 'resolved' ? 'Reopen thread' : 'Resolve thread', onClick: () => changeThreadStatus(a.id) }, [a.status === 'resolved' ? 'Reopen thread' : 'Resolve thread']), el('span', { class: 'grow' }), send]),
+        el('div', { class: 'thread-actions' }, [el('button', { class: `btn ghost status-action${a.status === 'resolved' ? '' : ' is-resolve'}`, type: 'button', 'data-write': '', disabled: pending || !canWrite(), 'aria-label': a.status === 'resolved' ? 'Reopen thread' : 'Resolve thread', onClick: () => changeThreadStatus(a.id) }, [icon(a.status === 'resolved' ? 'reopen' : 'resolve', 15), a.status === 'resolved' ? 'Reopen thread' : 'Resolve thread']), el('span', { class: 'grow' }), send]),
       ]) : el('div', { class: 'viewer-note' }, ['View only · Open this project locally to join the discussion.']),
     ]);
     ui.mount(thread);
+    if (inCard) positionThread();
     history.scrollTop = scroll;
+    if (revealReplyId) {
+      // Canonical saves may re-key replies; the newest reply is always last in the history.
+      const added = Array.from(history.querySelectorAll<HTMLElement>('.reply')).find((node) => node.dataset.replyId === revealReplyId);
+      const top = added ? added.offsetTop - history.offsetTop - 12 : history.scrollHeight;
+      const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? true;
+      if (typeof history.scrollTo === 'function') history.scrollTo({ top, behavior: still ? 'auto' : 'smooth' });
+      else history.scrollTop = top;
+      revealReplyId = null;
+    }
     if (hadFocus) { input.focus({ preventScroll: true }); if (selection) input.setSelectionRange(selection[0], selection[1]); }
     else restoreControlFocus();
     if (previous) thread.style.animation = 'none';
@@ -1127,7 +1109,6 @@ export function createWidget(opts: WidgetOptions): Widget {
           a.title ? el('div', { class: 't' }, [a.title]) : null,
           el('div', { class: 'b' }, [a.body]),
           el('div', { class: 'item-meta' }, [a.author?.name || 'Unattributed', ` · ${(a.replies ?? []).length} ${(a.replies ?? []).length === 1 ? 'reply' : 'replies'}`]),
-          el('div', { class: 'item-owner' }, [`Assignee · ${a.assignee?.name ?? 'Unassigned'}`]),
           !isOnRoute(a, route) && a.route ? el('div', { class: 'route' }, [a.route]) : null,
         ]),
       ]);

@@ -97,6 +97,8 @@ test.describe('dev server: author mode', () => {
     const discussion = (target: Page) => ui(target).locator('.note', { hasText: 'Discussion lifecycle' });
     await discussion(page).getByRole('button', { name: /^Open thread/ }).click();
     await discussion(other).getByRole('button', { name: /^Open thread/ }).click();
+    // The thread opens in place of the note's card, not as a side panel.
+    await expect(ui(page).locator('.thread')).toHaveClass(/in-card/);
     const reply = (target: Page) => ui(target).getByRole('textbox', { name: 'Reply to thread' });
     await reply(other).fill('A draft that survives synchronization.');
     await reply(page).fill('The first review reply.');
@@ -107,13 +109,8 @@ test.describe('dev server: author mode', () => {
     await expect(ui(page).locator('.thread')).toContainText('A draft that survives synchronization.');
     await expect(ui(page).locator('.thread .reply')).toHaveCount(2);
     await expect(ui(page).locator('.thread')).toContainText('Annotoo test author');
-    await reply(other).fill('Keep this draft while ownership changes.');
-    await ui(page).getByRole('button', { name: 'Assign to me' }).click();
-    await expect(ui(other).locator('.thread .owner-label')).toHaveText('Assignee · Annotoo test author');
-    await expect(reply(other)).toHaveValue('Keep this draft while ownership changes.');
-    await ui(other).getByRole('button', { name: 'Unassign thread' }).click();
-    await expect(ui(page).locator('.thread .owner-label')).toHaveText('Assignee · Unassigned');
-    await expect(ui(page).locator('.thread-history')).toContainText('unassigned this thread');
+    await expect(discussion(page).locator('.note-owner')).toHaveText('Annotoo test author');
+    await expect(ui(page).locator('.thread select')).toHaveCount(0);
     await ui(page).getByRole('button', { name: 'Resolve thread' }).click();
     await expect(ui(page).getByRole('button', { name: 'Reopen thread' })).toBeVisible();
     await expect(markers(page)).toHaveCount(baseline);
@@ -135,8 +132,7 @@ test.describe('production build hosted under a sub-path: viewer mode', () => {
     await expect(ui(page).locator('.thread')).toContainText('Jane Doe');
     await expect(ui(page).locator('.thread')).toContainText('Sam Lee');
     await expect(ui(page).locator('.thread .reply')).toHaveCount(2);
-    await expect(ui(page).locator('.thread .owner-label')).toHaveText('Assignee · Sam Lee');
-    await expect(ui(page).getByRole('combobox', { name: 'Assign thread to' })).toHaveCount(0);
+    await expect(ui(page).locator('.thread')).not.toContainText('Assignee');
     await expect(ui(page).getByRole('button', { name: 'Resolve thread' })).toHaveCount(0);
     await ui(page).getByRole('button', { name: 'Close thread' }).click();
     await openToolbar(page);
