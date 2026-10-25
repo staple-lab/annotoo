@@ -25,7 +25,8 @@ export function Sharing() {
       </p>
 
       <h2>See who started it</h2>
-      <p>Every note shows the person who created it, taken from their Git identity. Edits and
+      <p>Every note shows the person who created it: your Git name, or the name you set under
+        <strong>Your name</strong> in Settings. Edits and
         replies keep that name; each reply carries its own author. Names and hashed IDs are
         stored, so a hosted viewer never publishes a raw email directory.</p>
       <h2>Exchange changes through Git</h2>

@@ -36,7 +36,9 @@ git config user.name "Your Name"
 git config user.email "you@example.com"
 ```
 
-The displayed author name comes from `user.name`. Annotoo hashes the configured email to
+The displayed author name defaults to `user.name`; change it under **Your name** in
+Settings. The choice is kept in your browser and applies to notes and replies you write
+from then on. Annotoo hashes the configured email to
 derive a stable author ID; it does not publish or store the raw email in thread files.
 These local settings provide attribution, not verified identity or access control.
 Repository permissions still come from your Git host and local filesystem.

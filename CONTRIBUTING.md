@@ -72,4 +72,5 @@ After merging, tag the tested commit with the package version, such as `v0.3.0`,
 push the tag. The Release workflow builds installable packages, includes licenses and
 checksums, and publishes a GitHub release. `pnpm release:pack` produces the same files
 locally in `release-dist/`. Update `docs/release-notes.md` and the versioned installation
-URLs with each release. npm registry publication is a separate authenticated operation.
+URLs with each release. Then publish the same version to npm from `packages/core` with
+`npm publish` (an owner of the `staplelab` npm org, with 2FA).

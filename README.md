@@ -14,10 +14,10 @@ through Git; optionally publish a read-only review copy.
 
 ## One package, any framework
 
-Install the [v0.4.0 release package](https://github.com/staple-lab/annotoo/releases/tag/v0.4.0):
+Install [`@staplelab/annotoo`](https://www.npmjs.com/package/@staplelab/annotoo) from npm:
 
 ```bash
-npm install https://github.com/staple-lab/annotoo/releases/download/v0.4.0/staplelab-annotoo-0.4.0.tgz
+npm install @staplelab/annotoo
 ```
 
 Add Annotoo to your Vite config. It starts automatically in development, saves threads
@@ -99,7 +99,7 @@ other visitors' copies. The public demo uses fictional contributors.
 ## Plain HTML
 
 ```html
-<script src="https://annotoo.staplelab.com/releases/v0.4.0/annotoo.js"></script>
+<script src="https://annotoo.staplelab.com/releases/v0.5.0/annotoo.js"></script>
 ```
 
 The script starts automatically and saves in your browser. **Export HTML** creates a

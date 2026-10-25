@@ -1,5 +1,10 @@
 # @staplelab/annotoo
 
+## 0.5.0
+
+- Published to the npm registry: `npm install @staplelab/annotoo`.
+- Add a **Your name** setting. It defaults to your Git `user.name` and sets the name shown on notes, replies and edits you create from then on; the author ID stays the hash of your Git email.
+
 ## 0.4.0
 
 - Open threads in place of their note's card, beside the annotated element; notes without a card on the page keep the side panel.

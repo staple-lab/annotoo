@@ -878,6 +878,60 @@ describe('creator', () => {
   const sam = { id: 'sam', name: 'Sam Lee' };
   const alex = { id: 'alex', name: 'Alex Rivera' };
 
+  const nameField = () => q<HTMLInputElement>('.settings #annotoo-name')!;
+  const rename = (value: string) => {
+    nameField().value = value;
+    nameField().dispatchEvent(new Event('change'));
+  };
+
+  test('settings name defaults to the Git name and is used for new notes and replies', async () => {
+    const setDisplayName = vi.fn();
+    const storage = { ...memoryStorage([annotation('a', 1, '#title', { author: sam })]), identity: jane, setDisplayName };
+    inst = mount({ storage });
+    await inst.ready;
+    await openToolbar();
+    button('Settings')!.click();
+    expect(nameField().value).toBe('Jane Doe');
+    expect(nameField().placeholder).toBe('Jane Doe');
+    rename('  Janey  ');
+    expect(localStorage.getItem('annotoo:name')).toBe('Janey');
+    expect(setDisplayName).toHaveBeenLastCalledWith('Janey');
+    button('Settings')!.click();
+    document.getElementById('title')!.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
+    const body = q<HTMLTextAreaElement>('.editor textarea')!;
+    body.value = 'Named note';
+    body.dispatchEvent(new Event('input'));
+    q<HTMLButtonElement>('.editor .btn.primary')!.click();
+    const created = (await storage.load()).find((a) => a.body === 'Named note')!;
+    expect(created.author).toEqual({ id: 'jane', name: 'Janey' });
+    button('Stop annotating')!.click();
+    button(`Open thread ${created.n}`)!.click();
+    expect(q('.thread .reply-as')!.textContent).toBe('Replying as Janey');
+  });
+
+  test('clearing the name restores the Git name; the choice persists across mounts', async () => {
+    localStorage.setItem('annotoo:name', 'Janey');
+    const setDisplayName = vi.fn();
+    inst = mount({ storage: { ...memoryStorage([]), identity: jane, setDisplayName } });
+    await inst.ready;
+    expect(setDisplayName).toHaveBeenCalledWith('Janey');
+    await openToolbar();
+    button('Settings')!.click();
+    expect(nameField().value).toBe('Janey');
+    rename('');
+    expect(nameField().value).toBe('Jane Doe');
+    expect(localStorage.getItem('annotoo:name')).toBe('');
+    expect(setDisplayName).toHaveBeenLastCalledWith(null);
+  });
+
+  test('no name setting without a writable identity', async () => {
+    inst = mount({ storage: { ...memoryStorage([]), identity: null } });
+    await inst.ready;
+    await openToolbar();
+    button('Settings')!.click();
+    expect(nameField()).toBeNull();
+  });
+
   test('cards and the list show who created the note, with no assignee controls', async () => {
     inst = mount({ storage: { ...memoryStorage([annotation('a', 1, '#title', { author: jane, assignee: sam })]), identity: alex } });
     await inst.ready;

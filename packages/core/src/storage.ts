@@ -12,6 +12,8 @@ export interface AnnotationStorage {
   readonly identityError?: string;
   /** People known to the repository, available for assigning threads. */
   readonly collaborators?: CommentAuthor[];
+  /** Display name to write instead of the identity's own name; null restores the default. */
+  setDisplayName?(name: string | null): void;
   /** Subscribe to changes from other clients. The returned function stops synchronization. */
   subscribe?(listener: (annotations: Annotation[]) => void): () => void;
   /** Human-readable note shown in the panel footer, e.g. "Saved to src/annotoo.annotations.json". */
@@ -120,6 +122,7 @@ export function devServerStorage(
   const endpoint = options.endpoint ?? DEFAULT_ENDPOINT;
   let file = options.file ?? 'annotoo.annotations.json';
   let current: DevServerPayload | null = null;
+  let displayName: string | null = null;
   let pending = 0;
   let generation = 0;
   let polling = false;
@@ -172,6 +175,7 @@ export function devServerStorage(
     get identity() { return current?.identity; },
     get identityError() { return current?.identityError; },
     get collaborators() { return current?.collaborators; },
+    setDisplayName(name) { displayName = name?.trim() || null; },
     async load() {
       const payload = await load();
       accept(payload, false);
@@ -186,6 +190,8 @@ export function devServerStorage(
           if (!current) accept(await load(), false);
           const headers: Record<string, string> = { 'content-type': 'application/json' };
           if (current?.revision) headers['if-match'] = current.revision;
+          // Headers are ASCII-only, so the chosen name travels URI-encoded.
+          if (displayName) headers['x-annotoo-name'] = encodeURIComponent(displayName);
           const res = await fetch(endpoint, {
             method: 'PUT',
             headers,

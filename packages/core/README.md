@@ -1,10 +1,10 @@
 # @staplelab/annotoo
 
-Annotate your prototype, discuss changes, and assign the next step. One package includes
+Annotate your prototype and discuss changes beside the UI. One package includes
 both the browser widget and Vite integration.
 
 ```sh
-npm install https://github.com/staple-lab/annotoo/releases/download/v0.4.0/staplelab-annotoo-0.4.0.tgz
+npm install @staplelab/annotoo
 ```
 
 ```ts

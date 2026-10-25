@@ -1,8 +1,9 @@
 {
   "name": "@staplelab/annotoo",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Figma-style annotations for code prototypes. Annotate your UI, ship the notes with your build, and anyone opening it sees them in place.",
   "license": "MIT",
+  "homepage": "https://annotoo.staplelab.com/",
   "type": "module",
   "sideEffects": [
     "./dist/annotoo.js",
@@ -42,6 +43,9 @@
     "type": "git",
     "url": "git+https://github.com/staple-lab/annotoo.git",
     "directory": "packages/core"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsup && node scripts/inline-self.mjs",
