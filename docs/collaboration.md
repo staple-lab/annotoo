@@ -156,4 +156,4 @@ characters keep their original ID inside the thread and use
 A deleted thread keeps a `deleted: true` record so a legacy note is not accidentally
 restored on the next load. A resolved thread is retained as a discussion and is not a
 deletion. All new fields on `Annotation` are optional; see the
-[annotation format](https://staple-lab.github.io/annotoo/schema).
+[annotation format](https://annotoo.staplelab.com/schema).

@@ -30,7 +30,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm pages:build
         env:
-          SITE_BASE: /${{ github.event.repository.name }}/
+          # Served at the root of the annotoo.staplelab.com custom domain.
+          SITE_BASE: /
       - uses: actions/upload-pages-artifact@v3
         with:
           path: pages-dist

@@ -36,5 +36,5 @@ The standalone `dist/annotoo.js` script starts automatically.
 Advanced Vite integrations can set `autoMount: false` and initialize `mount()` manually.
 The package includes TypeScript types; the browser widget has no runtime dependencies.
 
-[Setup and framework examples](https://staple-lab.github.io/annotoo/install) ·
-[API](https://staple-lab.github.io/annotoo/api) · [MIT license](./LICENSE)
+[Setup and framework examples](https://annotoo.staplelab.com/install) ·
+[API](https://annotoo.staplelab.com/api) · [MIT license](./LICENSE)
