@@ -149,11 +149,14 @@ export function createWidget(opts: WidgetOptions): Widget {
   // A name chosen in settings replaces the identity's display name; the ID never changes.
   let chosenName = readPref(KEY_NAME, '').trim();
   opts.storage.setDisplayName?.(chosenName || null);
+  const localAuthor: CommentAuthor = { id: 'local', name: 'Local author' };
   const me = (): CommentAuthor | null | undefined => {
     const identity = opts.storage.identity;
+    // Adapters without Git identity (e.g. browser-local) still let visitors pick a name.
+    if (identity === undefined) return chosenName ? { ...localAuthor, name: chosenName } : undefined;
     return identity && chosenName ? { ...identity, name: chosenName } : identity;
   };
-  const currentAuthor = (): CommentAuthor => me() ?? { id: 'local', name: 'Local author' };
+  const currentAuthor = (): CommentAuthor => me() ?? localAuthor;
   const identityHelp = () => opts.storage.identityError || 'Set Git user.name and user.email in this repository, then restart the development server to join the discussion.';
 
   const left = () => settings.position.endsWith('left');
@@ -530,8 +533,8 @@ export function createWidget(opts: WidgetOptions): Widget {
     ));
   }
 
-  /** Name shown on new notes and replies; empty falls back to the Git name. */
-  function nameSetting(gitName: string): HTMLElement {
+  /** Name shown on new notes and replies; empty falls back to the Git name or "Local author". */
+  function nameSetting(gitName: string, fromGit: boolean): HTMLElement {
     const input = el('input', { type: 'text', id: 'annotoo-name', maxlength: 200, placeholder: gitName, autocomplete: 'name', spellcheck: 'false' }) as HTMLInputElement;
     input.value = chosenName || gitName;
     const apply = () => {
@@ -547,7 +550,7 @@ export function createWidget(opts: WidgetOptions): Widget {
     return el('div', { class: 'setting stack' }, [
       el('label', { class: 'label', for: 'annotoo-name' }, ['Your name']),
       input,
-      el('span', { class: 'help' }, ['Shown on notes and replies you create. Defaults to your Git name.']),
+      el('span', { class: 'help' }, [`Shown on notes and replies you create. Defaults to ${fromGit ? 'your Git name' : 'Local author'}.`]),
     ]);
   }
 
@@ -560,7 +563,7 @@ export function createWidget(opts: WidgetOptions): Widget {
     const status = author ? opts.storage.identity === null ? identityHelp() : opts.storage.describe?.() ?? '' : `View only · ${routeAnnotations().length} on this page`;
     settingsPop = el('div', { class: `surface settings${corner()}`, role: 'dialog', 'aria-label': 'Annotoo settings' }, [
       el('h3', {}, ['Settings']),
-      author && opts.storage.identity ? nameSetting(opts.storage.identity.name) : null,
+      author && opts.storage.identity !== null ? nameSetting(opts.storage.identity?.name ?? localAuthor.name, !!opts.storage.identity) : null,
       el('div', { class: 'setting stack' }, [
         el('span', { class: 'label' }, ['Show notes']),
         segmented('Show notes', settings.display, [['always', 'Always'], ['hover', 'On hover'], ['markers', 'Numbers only']], (display) => saveSettings({ display })),
