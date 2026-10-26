@@ -924,6 +924,25 @@ describe('creator', () => {
     expect(setDisplayName).toHaveBeenLastCalledWith(null);
   });
 
+  test('browser-local storage without a Git identity can still choose a name', async () => {
+    const storage = memoryStorage([]);
+    inst = mount({ storage });
+    await inst.ready;
+    await openToolbar();
+    button('Settings')!.click();
+    expect(nameField().value).toBe('Local author');
+    rename('Visitor');
+    expect(localStorage.getItem('annotoo:name')).toBe('Visitor');
+    button('Settings')!.click();
+    document.getElementById('title')!.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
+    const body = q<HTMLTextAreaElement>('.editor textarea')!;
+    body.value = 'Local note';
+    body.dispatchEvent(new Event('input'));
+    q<HTMLButtonElement>('.editor .btn.primary')!.click();
+    const created = (await storage.load()).find((a) => a.body === 'Local note')!;
+    expect(created.author).toEqual({ id: 'local', name: 'Visitor' });
+  });
+
   test('no name setting without a writable identity', async () => {
     inst = mount({ storage: { ...memoryStorage([]), identity: null } });
     await inst.ready;
