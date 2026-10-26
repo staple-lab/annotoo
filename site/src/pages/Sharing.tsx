@@ -99,7 +99,7 @@ git push`} />
       <p>
         An explicit author override on a hosted page is a personal browser-only copy. It cannot
         write to Git or change the deployed discussion other visitors see. This documentation
-        site's sandbox uses the same browser-local approach; the full prototype demo is read-only.
+        site, which is also the live demo, uses the same browser-local approach.
       </p>
 
       <h2>Keeping it out of production</h2>

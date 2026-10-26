@@ -6,8 +6,7 @@
 leave a note, and reply or resolve with your team. Threads travel with your code
 through Git; optionally publish a read-only review copy.
 
-[Live demo](https://annotoo.staplelab.com/demo/) ·
-[Documentation](https://annotoo.staplelab.com/) ·
+[Live demo & documentation](https://annotoo.staplelab.com/) ·
 [API](https://annotoo.staplelab.com/api)
 
 ![A discussion beside the prototype](docs/screenshots/threads.jpg)
@@ -94,7 +93,7 @@ annotoo({ build: 'viewer' })
 
 The build includes the widget and discussions. Rebuild and deploy to publish changes.
 Hosted viewers need no backend or account. Browser-local edits do not update Git or
-other visitors' copies. The public demo uses fictional contributors.
+other visitors' copies. The live demo uses fictional contributors.
 
 ## Plain HTML
 
