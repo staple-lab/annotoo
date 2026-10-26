@@ -70,7 +70,7 @@ export function App() {
         ))}
         <div className="nav-foot">
           <a href={GITHUB}>GitHub</a>
-          <span className="version">v0.5.1</span>
+          <span className="version">v{__ANNOTOO_VERSION__}</span>
         </div>
       </nav>
 
