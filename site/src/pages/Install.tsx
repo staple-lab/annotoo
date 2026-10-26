@@ -44,7 +44,7 @@ git config user.email "you@example.com"`} />
       <p>The browser API works with any framework. Call <code>mount()</code> once in a browser
         entry point. Without a custom storage adapter, author mode saves only in this browser.
         See the <Link to="/api">API</Link> for manual setup and development flags.</p>
-      <CodeBlock code={`<script src="https://annotoo.staplelab.com/releases/v0.5.0/annotoo.js"></script>`} />
+      <CodeBlock code={`<script src="https://annotoo.staplelab.com/releases/v0.5.1/annotoo.js"></script>`} />
       <p>On plain HTML pages, the script starts automatically. <strong>Export HTML</strong>
         creates a self-contained, read-only copy.</p>
     </article>

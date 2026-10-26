@@ -3,6 +3,10 @@ export function Changelog() {
     <article className="prose">
       <h1>Changelog</h1>
       <section className="release">
+        <h2>0.5.1 <time dateTime="2026-10-26">26 October 2026</time></h2>
+        <p>Published from GitHub Actions with npm provenance. No functional changes. <a href="https://github.com/staple-lab/annotoo/releases/tag/v0.5.1">Release notes</a>.</p>
+      </section>
+      <section className="release">
         <h2>0.5.0 <time dateTime="2026-10-25">25 October 2026</time></h2>
         <p>Now on npm: <code>npm install @staplelab/annotoo</code>. <a href="https://github.com/staple-lab/annotoo/releases/tag/v0.5.0">Release notes</a>.</p>
         <ul>

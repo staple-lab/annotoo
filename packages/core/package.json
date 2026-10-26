@@ -1,6 +1,6 @@
 {
   "name": "@staplelab/annotoo",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Figma-style annotations for code prototypes. Annotate your UI, ship the notes with your build, and anyone opening it sees them in place.",
   "license": "MIT",
   "homepage": "https://annotoo.staplelab.com/",
