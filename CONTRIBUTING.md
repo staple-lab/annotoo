@@ -68,9 +68,9 @@ Run `pnpm release:pack` before opening the release PR and commit the generated
 `site/public/releases/<version>/annotoo.js` archive. Keep previous archives so existing
 script URLs continue to work. An existing version cannot be overwritten with a different build.
 
-After merging, tag the tested commit with the package version, such as `v0.3.0`, and
-push the tag. The Release workflow builds installable packages, includes licenses and
-checksums, and publishes a GitHub release. `pnpm release:pack` produces the same files
-locally in `release-dist/`. Update `docs/release-notes.md` and the versioned installation
-URLs with each release. Then publish the same version to npm from `packages/core` with
-`npm publish` (an owner of the `staplelab` npm org, with 2FA).
+Update `docs/release-notes.md` and the versioned installation URLs with each release.
+Merging is the release: once CI passes on `main` with a version that is not yet on npm,
+the Release workflow builds installable packages with licenses and checksums, publishes
+them to npm through trusted publishing, and creates the `v<version>` tag and GitHub
+release. Merges that do not change the version publish nothing. `pnpm release:pack`
+produces the same files locally in `release-dist/`.

@@ -1,24 +1,35 @@
 name: Release
 
+# Publishes whenever main passes CI with a package version that is not on npm yet.
+# Bump the version in packages/core/package.json and merge to release.
 on:
-  push:
-    tags: ['v*']
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
-concurrency: release-${{ github.ref }}
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
   release:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     permissions:
       contents: write
       # Lets npm verify this workflow through trusted publishing (no npm token).
       id-token: write
+    env:
+      RELEASE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_SHA }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -27,18 +38,29 @@ jobs:
           registry-url: https://registry.npmjs.org
       # Trusted publishing needs npm 11.5.1 or later.
       - run: npm install -g npm@11
-      - name: Check release tag
+      - name: Check for an unreleased version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          node --input-type=module <<'JS'
-          import { readFileSync } from 'node:fs';
-          const { version } = JSON.parse(readFileSync('packages/core/package.json', 'utf8'));
-          if (process.env.GITHUB_REF_TYPE !== 'tag' || process.env.GITHUB_REF_NAME !== `v${version}`) {
-            throw new Error('Run this workflow from the tag matching the package version.');
-          }
-          JS
+          version=$(node -p "require('./packages/core/package.json').version")
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          if npm view "@staplelab/annotoo@$version" version >/dev/null 2>&1; then
+            echo "npm=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "npm=true" >> "$GITHUB_OUTPUT"
+          fi
+          if gh release view "v$version" >/dev/null 2>&1; then
+            echo "github=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "github=true" >> "$GITHUB_OUTPUT"
+          fi
       - run: pnpm install --frozen-lockfile
+        if: steps.version.outputs.npm == 'true' || steps.version.outputs.github == 'true'
       - run: pnpm release:pack
+        if: steps.version.outputs.npm == 'true' || steps.version.outputs.github == 'true'
       - name: Verify packaged licenses and entry points
+        if: steps.version.outputs.npm == 'true' || steps.version.outputs.github == 'true'
         run: |
           for package in release-dist/*.tgz; do
             tar -tzf "$package" | grep -qx 'package/LICENSE'
@@ -50,10 +72,13 @@ jobs:
           done
           (cd release-dist && sha256sum --check SHA256SUMS)
       - name: Publish to npm
+        if: steps.version.outputs.npm == 'true'
         run: npm publish ./release-dist/*.tgz --access public
       - name: Publish GitHub release
+        if: steps.version.outputs.github == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
-          gh release create "$GITHUB_REF_NAME" release-dist/* \
-            --verify-tag --title "Annotoo $GITHUB_REF_NAME" --notes-file docs/release-notes.md
+          gh release create "$TAG" release-dist/* --target "$RELEASE_SHA" \
+            --title "Annotoo $TAG" --notes-file docs/release-notes.md
