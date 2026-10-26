@@ -50,7 +50,7 @@ jobs:
           done
           (cd release-dist && sha256sum --check SHA256SUMS)
       - name: Publish to npm
-        run: npm publish release-dist/*.tgz --access public
+        run: npm publish ./release-dist/*.tgz --access public
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
