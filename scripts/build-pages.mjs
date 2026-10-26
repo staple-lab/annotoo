@@ -8,7 +8,6 @@ if (!/^\/(?:[a-zA-Z0-9_-]+\/)*$/.test(base)) throw new Error('SITE_BASE must be 
 const run = (args, env = {}) => execFileSync('pnpm', args, { stdio: 'inherit', env: { ...process.env, ...env } });
 run(['build']);
 run(['--filter', 'site', 'build'], { SITE_BASE: base });
-run(['--filter', 'example-vite-react', 'build', '--base', `${base}demo/`]);
 
 const destination = resolve('pages-dist');
 rmSync(destination, { recursive: true, force: true });
@@ -20,8 +19,11 @@ for (const route of ['install', 'features', 'sharing', 'schema', 'api', 'faq', '
   writeFileSync(`${destination}/${route}/index.html`, html);
 }
 writeFileSync(`${destination}/404.html`, html);
-cpSync('examples/vite-react/dist', `${destination}/demo`, { recursive: true });
-mkdirSync(`${destination}/demo/agents`, { recursive: true });
-cpSync('examples/vite-react/dist/index.html', `${destination}/demo/agents/index.html`);
+// The docs site is the live demo; keep old /demo/ links working.
+const redirect = `<!doctype html><meta http-equiv="refresh" content="0; url=${base}"><link rel="canonical" href="${base}">`;
+for (const route of ['demo', 'demo/agents']) {
+  mkdirSync(`${destination}/${route}`, { recursive: true });
+  writeFileSync(`${destination}/${route}/index.html`, redirect);
+}
 writeFileSync(`${destination}/.nojekyll`, '');
-console.log(`GitHub Pages site and demo built in ${destination}`);
+console.log(`GitHub Pages site built in ${destination}`);

@@ -70,9 +70,8 @@ export function Overview() {
       <section className="try" data-annotoo-id="try-it" aria-labelledby="try-title">
         <h2 id="try-title">Explore Annotoo</h2>
         <p>
-          This documentation page is a personal sandbox: notes you add here stay in your browser.
-          Nobody else sees them, and they never update Git. The full prototype demo is a read-only
-          review copy with the published discussions. Jane Doe, Sam Lee and Alex Rivera are fictional people in the sample threads.
+          This site is the live demo, running the latest Annotoo. Notes you add here stay in your
+          browser: nobody else sees them, and they never update Git. Jane Doe, Sam Lee and Alex Rivera are fictional people in the sample threads.
         </p>
         <div className="try-actions">
           <a className="button" href={viewerHref}>
