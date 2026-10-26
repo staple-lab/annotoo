@@ -99,7 +99,7 @@ other visitors' copies. The public demo uses fictional contributors.
 ## Plain HTML
 
 ```html
-<script src="https://annotoo.staplelab.com/releases/v0.5.0/annotoo.js"></script>
+<script src="https://annotoo.staplelab.com/releases/v0.5.1/annotoo.js"></script>
 ```
 
 The script starts automatically and saves in your browser. **Export HTML** creates a

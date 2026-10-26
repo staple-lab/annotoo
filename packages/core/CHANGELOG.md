@@ -1,5 +1,9 @@
 # @staplelab/annotoo
 
+## 0.5.1
+
+- Releases now publish to npm from GitHub Actions with trusted publishing and provenance. No functional changes.
+
 ## 0.5.0
 
 - Published to the npm registry: `npm install @staplelab/annotoo`.
