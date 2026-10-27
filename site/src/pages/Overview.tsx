@@ -17,6 +17,9 @@ export function Overview() {
         comes from, what isn't built yet. The notes ship with your build, so everyone who opens
         the link sees them beside the UI they describe.
       </p>
+      <p>
+        Open source on <a href="https://github.com/staple-lab/annotoo">GitHub</a>.
+      </p>
 
       <CodeBlock
         id="install-snippet"
